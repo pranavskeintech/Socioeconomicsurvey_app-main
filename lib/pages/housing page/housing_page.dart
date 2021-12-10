@@ -189,7 +189,6 @@ class _HousingPageState extends State<HousingPage> {
     // super.initState();
     // assetCheckBox();
     // residentialBuildingCheckbox();
-
     print(
         "============>${housingPageResponse.data[0].roof}<==================");
     /*1.Type of House*/
@@ -203,40 +202,43 @@ class _HousingPageState extends State<HousingPage> {
     question9GroupValue = setDataToRb(housingPageResponse.data[0].do_you_have_any_other_land_property);
     question12GroupValue = setDataToRb(housingPageResponse.data[0].if_no_are_you_willing_to_buy);
     question3GroupValue1 = setRbAndText(question3Choices1,housingPageResponse.data[0].wall,wallController,"Others, Specify");
+    question3GroupValue2 = setRbAndText(question3Choices2,housingPageResponse.data[0].roof,roofController,"Others, Specify");
+    question15GroupValue = setRbAndText(question15Choices,housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen,cookingFuelController,"If Other, Specify");
+    setTxtEditValue(housingPageResponse.data[0].if_rented_amount,rentedAmountController);
+    setTxtEditValue(housingPageResponse.data[0].approx_price_range_of_land_per_katha,approxPriceRangeController);
+
+    // if (housingPageResponse.data[0].if_rented_amount != null) {
+    //   rentedAmountController.text = housingPageResponse.data[0].if_rented_amount;
+    // }
 
 
-    if (housingPageResponse.data[0].if_rented_amount != null) {
-      rentedAmountController.text = housingPageResponse.data[0].if_rented_amount;
-    }
+    // if (housingPageResponse.data[0].roof != null) {
+    //   print(housingPageResponse.data[0].roof);
+    //   if(question3Choices2.contains(housingPageResponse.data[0].roof)){
+    //     question3GroupValue2 = housingPageResponse.data[0].roof;
+    //   }else{
+    //     question3GroupValue2 = "Others, Specify";
+    //     roofController.text =  housingPageResponse.data[0].roof;
+    //   }
+    // }
 
-
-    if (housingPageResponse.data[0].roof != null) {
-      print(housingPageResponse.data[0].roof);
-      if(question3Choices2.contains(housingPageResponse.data[0].roof)){
-        question3GroupValue2 = housingPageResponse.data[0].roof;
-      }else{
-        question3GroupValue2 = "Others, Specify";
-        roofController.text =  housingPageResponse.data[0].roof;
-      }
-    }
-
-    if (housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen != null) {
-      print(housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen);
-      if(question15Choices.contains(housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen)){
-        question15GroupValue = housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen;
-      }else{
-        question15GroupValue = "If Other, Specify";
-        cookingFuelController.text =  housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen;
-      }
-    }
+    // if (housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen != null) {
+    //   print(housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen);
+    //   if(question15Choices.contains(housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen)){
+    //     question15GroupValue = housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen;
+    //   }else{
+    //     question15GroupValue = "If Other, Specify";
+    //     cookingFuelController.text =  housingPageResponse.data[0].cooking_fuel_used_in_the_kitchen;
+    //   }
+    // }
 
 
     print(
-        "============>${housingPageResponse.data[0].asset_owned_by_household}<==================");
-   // print("============>${housingPageResponse.data[0].usage_of_residential_building_text}<==================");
+        "============>${housingPageResponse.data[0].usage_of_residential_building_text}<==================");
+    print("============>${housingPageResponse.data[0].usage_of_residential_building_text}<==================");
 
     // if(housingPageResponse.data[0].usage_of_residential_building_text!= null){
-    //   residentialBuildingController.text = housingPageResponse.data[0].usage_of_residential_building_text;
+    //  residentialBuildingController.text = housingPageResponse.data[0].usage_of_residential_building_text;
     // }
 
     final tagName = housingPageResponse.data[0].asset_owned_by_household;
@@ -967,6 +969,12 @@ class _HousingPageState extends State<HousingPage> {
     }
     print("temp${temp}");
     return temp;
+  }
+
+  void setTxtEditValue(String dataFromApi, TextEditingController txtEditController) {
+    if (dataFromApi != null) {
+      txtEditController.text = dataFromApi;
+    }
   }
 
 
