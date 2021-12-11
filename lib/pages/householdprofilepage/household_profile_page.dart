@@ -88,6 +88,15 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
   @override
   void initState() {
     setState(() {
+      question1GroupValue = "";
+      question2GroupValue = "";
+      question3GroupValue1 = "";
+      question3GroupValue2 = "";
+      question3GroupValue3 = "";
+      question4GroupValue = "";
+      question5GroupValue = "";
+      question6GroupValue = "";
+
       futureData =  checkStatus();
     });
     print("Calling initState");
@@ -112,8 +121,9 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
             print(deviceResponse.data[0].surveyId);
             print(deviceResponse.data[0]);
             print("-----${deviceResponse.data[0].household_status}");
+            print(statusOf);
             if (statusOf == "pending_survey") {
-              setvaluesToForm();
+               setvaluesToForm();
             }
           } else {
             throw Exception('Failed to load Data');
@@ -484,12 +494,26 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
         question6GroupValue,
         "household_status": "1"
       };
+      var dataUpdate = {
+       // "survey_id": surveyId,
+        "migrated": question1GroupValue,
+        "if_yes_no_of_years": question2GroupValue,
+        "place_of_origin": question3GroupValue1,
+        "migration_type": question3GroupValue2,
+        "reason_of_migration": question3GroupValue3,
+        "are_you_willing_to_migrate_to_another_place": question4GroupValue,
+        "if_no_reasons_for_not_going_back_to_the_native_place":
+        question5GroupValue,
+        "after_covid19_situation_you_go_back_to_your_native_place":
+        question6GroupValue,
+        "household_status": "1"
+      };
 
 
       print("-----${deviceResponse.data[0].household_status}");
 
       var response;
-      if (deviceResponse.data[0].household_status == "1" || deviceResponse.data[0].household_status != null) {
+      if (deviceResponse.data[0].household_status == "1" || deviceResponse.data[0].household_status != "null") {
         print("in if");
         response = await http.put(
             Uri.parse(
@@ -497,7 +521,7 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
             },
-            body: json.encode(data));
+            body: json.encode(dataUpdate));
       } else {
         print("in else");
         deviceResponse.data[0].household_status = "1";

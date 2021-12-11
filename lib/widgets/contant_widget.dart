@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ButtonSaveAndContinue extends StatelessWidget {
@@ -267,6 +268,10 @@ class NumberTextFieldContainer extends StatelessWidget {
           onChanged: onChange,
           controller: textController,
           keyboardType: TextInputType.number,
+          maxLength: 10,
+          inputFormatters: <TextInputFormatter>[
+            new FilteringTextInputFormatter.allow(RegExp("[0-9]")),
+          ],
           decoration: InputDecoration(
               fillColor: Colors.grey,
               labelText: labelText,

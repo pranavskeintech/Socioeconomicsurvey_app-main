@@ -164,6 +164,7 @@ class _HousingPageState extends State<HousingPage> {
           print("test");
           print(housingPageResponse.data[0].surveyId);
           print(housingPageResponse.data[0]);
+          print(statusOf);
           if (statusOf == "pending_survey") {
           setValuesToForm();
           }
@@ -233,9 +234,9 @@ class _HousingPageState extends State<HousingPage> {
     // }
 
 
-    print(
-        "============>${housingPageResponse.data[0].usage_of_residential_building_text}<==================");
-    print("============>${housingPageResponse.data[0].usage_of_residential_building_text}<==================");
+    // print(
+    //     "============>${housingPageResponse.data[0].usage_of_residential_building_text}<==================");
+    // print("============>${housingPageResponse.data[0].usage_of_residential_building_text}<==================");
 
     // if(housingPageResponse.data[0].usage_of_residential_building_text!= null){
     //  residentialBuildingController.text = housingPageResponse.data[0].usage_of_residential_building_text;
