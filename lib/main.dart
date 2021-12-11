@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:provider/provider.dart';
 import 'package:socio_survey/components/connectivity_provider.dart';
+import 'package:socio_survey/models/survey_model.dart';
 import 'package:socio_survey/pages/cultural%20and%20heritage%20page/cultural_and_heritage.dart';
 import 'package:socio_survey/pages/final%20page/final_page.dart';
 import 'package:socio_survey/pages/user%20details%20page/user_details_page.dart';
@@ -19,6 +20,8 @@ import 'pages/physical infrastructure page/physical_infrastructure_page.dart';
 import 'components/skip_page.dart';
 import 'pages/slums page/slums_page.dart';
 import 'pages/social infrastructure page/social_infrastructure_page.dart';
+
+SurveyModel surveyModel;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

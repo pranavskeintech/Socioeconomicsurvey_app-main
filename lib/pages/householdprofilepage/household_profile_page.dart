@@ -8,10 +8,13 @@ import 'package:socio_survey/components/connectivity_check.dart';
 import 'package:socio_survey/components/get_data.dart';
 import 'package:socio_survey/dbHelper/dbHelper.dart';
 import 'package:socio_survey/json%20data/household_data.dart';
+import 'package:socio_survey/main.dart';
 import 'package:socio_survey/models/HouseHoldQuestion.dart';
 import 'package:http/http.dart' as http;
+import 'package:socio_survey/pages/user%20details%20page/user_details_page.dart';
 import 'package:socio_survey/widgets/contant_widget.dart';
 import 'package:socio_survey/widgets/contants_question.dart';
+
 var isDataAvailble = false;
 DeviceId deviceResponse;
 
@@ -21,34 +24,12 @@ TextEditingController migratedController = TextEditingController();
 TextEditingController willingToMigrateController = TextEditingController();
 TextEditingController ifNoNotGoingBackController = TextEditingController();
 List question1Choices = ["Yes", "No"];
-List question2Choices = [
-  "> 5 Years",
-  "5 to 10 Years",
-  "10 to 25 Years",
-  "25 to 50 Years",
-  "< 50 Years"
-];
+List question2Choices = ["> 5 Years", "5 to 10 Years", "10 to 25 Years", "25 to 50 Years", "< 50 Years"];
 List question3Choices1 = ["Within State", "Outside State"];
 List question3Choices2 = ["Seasonal", "Permanent"];
-List question3Choices3 = [
-  "Education",
-  "Employment",
-  "Living Condition",
-  "Accessibility",
-  "If Other, Specify"
-];
-List question4Choices = [
-  "Yes",
-  "No",
-  "Maybe",
-  "If yes or maybe Place / Location"
-];
-List question5Choices = [
-  "Earning Money",
-  "Habituated",
-  "Education",
-  "If Other, Specify"
-];
+List question3Choices3 = ["Education", "Employment", "Living Condition", "Accessibility", "If Other, Specify"];
+List question4Choices = ["Yes", "No", "Maybe", "If yes or maybe Place / Location"];
+List question5Choices = ["Earning Money", "Habituated", "Education", "If Other, Specify"];
 List question6Choices = ["Yes", "No"];
 String question1GroupValue;
 String question2GroupValue;
@@ -73,9 +54,10 @@ bool visiblity = false;
 bool visiblity1 = false;
 
 ConnectivityCheck connectivityCheck = ConnectivityCheck();
-class HouseHoldPofilePage extends StatefulWidget {
 
+class HouseHoldPofilePage extends StatefulWidget {
   final String surveyId;
+
   HouseHoldPofilePage({Key key, this.surveyId}) : super(key: key);
 
   @override
@@ -88,58 +70,68 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
   @override
   void initState() {
     setState(() {
-      futureData =  checkStatus();
+      futureData = checkStatus();
     });
     print("Calling initState");
+    setData();
   }
 
-  Future checkStatus() async
-  {
+  Future checkStatus() async {
     SharedPreferences _pref = await SharedPreferences.getInstance();
     final String statusOf = _pref.getString('survey_status');
     print(statusOf);
-      if (_pref.getString("survey_id") != null) {
-        final id = _pref.getString("survey_id");
-        print("id====>${id}");
-        try {
-          final response = await http.get(Uri.parse(
-              "http://13.232.140.106:5000/rsi-field-force-api/survey/get-individual-survey-details?survey_id=$id"));
-          if (response.statusCode == 200) {
-            print("Response===-----${response.body}");
-            deviceResponse = DeviceId.fromJson(jsonDecode(response.body));
-            print(deviceResponse.data.length);
-            print("test");
-            print(deviceResponse.data[0].surveyId);
-            print(deviceResponse.data[0]);
-            print("-----${deviceResponse.data[0].household_status}");
-            if (statusOf == "pending_survey") {
-              setvaluesToForm();
-            }
-          } else {
-            throw Exception('Failed to load Data');
+    if (_pref.getString("survey_id") != null) {
+      final id = _pref.getString("survey_id");
+      print("id====>${id}");
+      try {
+        final response = await http.get(Uri.parse("http://13.232.140.106:5000/rsi-field-force-api/survey/get-individual-survey-details?survey_id=$id"));
+        if (response.statusCode == 200) {
+          print("Response===-----${response.body}");
+          deviceResponse = DeviceId.fromJson(jsonDecode(response.body));
+          print(deviceResponse.data.length);
+          print("test");
+          print(deviceResponse.data[0].surveyId);
+          print(deviceResponse.data[0]);
+          print("-----${deviceResponse.data[0].household_status}");
+          if (statusOf == "pending_survey") {
+            setvaluesToForm();
           }
-        } catch (e) {
-          print("error" + e.toString());
+        } else {
+          throw Exception('Failed to load Data');
         }
+      } catch (e) {
+        print("error" + e.toString());
       }
-
+    }
   }
 
-
+  setData() {
+    if (widget.surveyId == null) {
+      return;
+    }
+    question1GroupValue = surveyModel.migrated;
+    question2GroupValue = surveyModel.ifYesNoOfYears;
+    question3GroupValue1 = surveyModel.placeOfOrigin;
+    question3GroupValue2 = surveyModel.migrationType;
+    question3GroupValue3 = surveyModel.reasonOfMigration;
+    question4GroupValue = surveyModel.areYouWillingToMigrateToAnotherPlace;
+    question5GroupValue = surveyModel.ifNoReasonsForNotGoingBackToTheNativePlace;
+    question6GroupValue = surveyModel.afterCovid19SituationYouGoBackToYourNativePlace;
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: futureData,
-      builder:(BuildContext context, snapshot) {
+      builder: (BuildContext context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.waiting:
             return Center(
                 child: CircularProgressIndicator(
-                  color: Colors.deepOrangeAccent,
-                  backgroundColor: Colors.blue,
-                  strokeWidth: 5.0,
-                ));
+              color: Colors.deepOrangeAccent,
+              backgroundColor: Colors.blue,
+              strokeWidth: 5.0,
+            ));
           default:
             if (snapshot.hasError)
               return Center(child: Text('Error: ${snapshot.error}'));
@@ -150,11 +142,9 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
     );
   }
 
-
-
   Widget HouseHoldPofilePage1() {
     return Scaffold(
-    //  key: scaffoldKey,
+      //  key: scaffoldKey,
       body: SingleChildScrollView(
         child: QuestionBody(
           questionBody: Column(
@@ -193,206 +183,203 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
               ),
               (question1GroupValue == "Yes")
                   ? QuestionContainer(
-                  child: Column(
-                    children: [
-                      const QuestionName(
-                        questionName: HouseHoldQuestion.ifYesNoYears,
-                      ),
-                      for (var i = 0; i < question2Choices.length; i++)
-                        RadioListTile(
-                            tileColor: Colors.orangeAccent,
-                            selectedTileColor: Colors.orangeAccent,
-                            activeColor: Colors.deepOrange,
-                            title: Text(
-                              question2Choices[i].toString(),
-                              style: GoogleFonts.quicksand(
-                                fontSize: 18,
+                      child: Column(
+                      children: [
+                        const QuestionName(
+                          questionName: HouseHoldQuestion.ifYesNoYears,
+                        ),
+                        for (var i = 0; i < question2Choices.length; i++)
+                          RadioListTile(
+                              tileColor: Colors.orangeAccent,
+                              selectedTileColor: Colors.orangeAccent,
+                              activeColor: Colors.deepOrange,
+                              title: Text(
+                                question2Choices[i].toString(),
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 18,
+                                ),
                               ),
-                            ),
-                            value: question2Choices[i].toString(),
-                            groupValue: question2GroupValue,
-                            onChanged: (val) {
-                              setState(() {
-                                question2GroupValue = val.toString();
-                                print(question2GroupValue);
-                              });
-                            }),
-                    ],
-                  ))
+                              value: question2Choices[i].toString(),
+                              groupValue: question2GroupValue,
+                              onChanged: (val) {
+                                setState(() {
+                                  question2GroupValue = val.toString();
+                                  print(question2GroupValue);
+                                });
+                              }),
+                      ],
+                    ))
                   : Container(),
               (question1GroupValue == "Yes")
                   ? QuestionContainer(
-                  child: Column(
-                    children: [
-                      const QuestionName(
-                        questionName: HouseHoldQuestion.ifMigrated,
-                      ),
-                      /*sub1 */
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: const QuestionName(
-                          questionName: HouseHoldQuestion.placeOfOrgin,
+                      child: Column(
+                      children: [
+                        const QuestionName(
+                          questionName: HouseHoldQuestion.ifMigrated,
                         ),
-                      ),
-                      for (var i = 0; i < question3Choices1.length; i++)
-                        RadioListTile(
-                            tileColor: Colors.orangeAccent,
-                            selectedTileColor: Colors.orangeAccent,
-                            activeColor: Colors.deepOrange,
-                            title: Text(
-                              question3Choices1[i].toString(),
-                              style: GoogleFonts.quicksand(
-                                fontSize: 18,
-                              ),
-                            ),
-                            value: question3Choices1[i].toString(),
-                            groupValue: question3GroupValue1,
-                            onChanged: (val) {
-                              setState(() {
-                                question3GroupValue1 = val.toString();
-                                print(question3GroupValue1);
-                              });
-                            }),
-                      //sub2
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: const QuestionName(
-                          questionName: HouseHoldQuestion.migrationType,
+                        /*sub1 */
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: const QuestionName(
+                            questionName: HouseHoldQuestion.placeOfOrgin,
+                          ),
                         ),
-                      ),
-                      for (var i = 0; i < question3Choices2.length; i++)
-                        RadioListTile(
-                            tileColor: Colors.orangeAccent,
-                            selectedTileColor: Colors.orangeAccent,
-                            activeColor: Colors.deepOrange,
-                            title: Text(
-                              question3Choices2[i].toString(),
-                              style: GoogleFonts.quicksand(
-                                fontSize: 18,
+                        for (var i = 0; i < question3Choices1.length; i++)
+                          RadioListTile(
+                              tileColor: Colors.orangeAccent,
+                              selectedTileColor: Colors.orangeAccent,
+                              activeColor: Colors.deepOrange,
+                              title: Text(
+                                question3Choices1[i].toString(),
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 18,
+                                ),
                               ),
-                            ),
-                            value: question3Choices2[i].toString(),
-                            groupValue: question3GroupValue2,
-                            onChanged: (val) {
-                              setState(() {
-                                question3GroupValue2 = val.toString();
-                                print(question3GroupValue2);
-                              });
-                            }),
-                      //sub2
+                              value: question3Choices1[i].toString(),
+                              groupValue: question3GroupValue1,
+                              onChanged: (val) {
+                                setState(() {
+                                  question3GroupValue1 = val.toString();
+                                  print(question3GroupValue1);
+                                });
+                              }),
+                        //sub2
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: const QuestionName(
+                            questionName: HouseHoldQuestion.migrationType,
+                          ),
+                        ),
+                        for (var i = 0; i < question3Choices2.length; i++)
+                          RadioListTile(
+                              tileColor: Colors.orangeAccent,
+                              selectedTileColor: Colors.orangeAccent,
+                              activeColor: Colors.deepOrange,
+                              title: Text(
+                                question3Choices2[i].toString(),
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 18,
+                                ),
+                              ),
+                              value: question3Choices2[i].toString(),
+                              groupValue: question3GroupValue2,
+                              onChanged: (val) {
+                                setState(() {
+                                  question3GroupValue2 = val.toString();
+                                  print(question3GroupValue2);
+                                });
+                              }),
+                        //sub2
 
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: const QuestionName(
-                          questionName: HouseHoldQuestion.reasonOfMigration,
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: const QuestionName(
+                            questionName: HouseHoldQuestion.reasonOfMigration,
+                          ),
                         ),
-                      ),
-                      for (var i = 0; i < question3Choices3.length; i++)
-                        RadioListTile(
-                            tileColor: Colors.orangeAccent,
-                            selectedTileColor: Colors.orangeAccent,
-                            activeColor: Colors.deepOrange,
-                            title: Text(
-                              question3Choices3[i].toString(),
-                              style: GoogleFonts.quicksand(
-                                fontSize: 18,
+                        for (var i = 0; i < question3Choices3.length; i++)
+                          RadioListTile(
+                              tileColor: Colors.orangeAccent,
+                              selectedTileColor: Colors.orangeAccent,
+                              activeColor: Colors.deepOrange,
+                              title: Text(
+                                question3Choices3[i].toString(),
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 18,
+                                ),
                               ),
-                            ),
-                            value: question3Choices3[i].toString(),
-                            groupValue: question3GroupValue3,
-                            onChanged: (val) {
-                              setState(() {
-                                question3GroupValue3 = val.toString();
-                                print(question3GroupValue3);
-                              });
-                            }),
-                      (question3GroupValue3 == "If Other, Specify")
-                          ? TextFieldContainer(
-                        controller: migratedController,
-                        hint: "Enter Text",
-                        onChange: (val) {
-                          question3GroupValue3 =
-                              migratedController.text;
-                        },
-                      )
-                          : Container(),
-                    ],
-                  ))
+                              value: question3Choices3[i].toString(),
+                              groupValue: question3GroupValue3,
+                              onChanged: (val) {
+                                setState(() {
+                                  question3GroupValue3 = val.toString();
+                                  print(question3GroupValue3);
+                                });
+                              }),
+                        (question3GroupValue3 == "If Other, Specify")
+                            ? TextFieldContainer(
+                                controller: migratedController,
+                                hint: "Enter Text",
+                                onChange: (val) {
+                                  question3GroupValue3 = migratedController.text;
+                                },
+                              )
+                            : Container(),
+                      ],
+                    ))
                   : Container(),
               QuestionContainer(
                   child: Column(
-                    children: [
-                      const QuestionName(
-                        questionName: HouseHoldQuestion.areWillingToAnother,
-                      ),
-                      for (var i = 0; i < question4Choices.length; i++)
-                        RadioListTile(
-                            tileColor: Colors.orangeAccent,
-                            selectedTileColor: Colors.orangeAccent,
-                            activeColor: Colors.deepOrange,
-                            title: Text(
-                              question4Choices[i].toString(),
-                              style: GoogleFonts.quicksand(
-                                fontSize: 18,
-                              ),
-                            ),
-                            value: question4Choices[i].toString(),
-                            groupValue: question4GroupValue,
-                            onChanged: (val) {
-                              setState(() {
-                                question4GroupValue = val.toString();
-                                print(question4GroupValue);
-                              });
-                            }),
-                      (question4GroupValue == "If yes or maybe Place / Location")
-                          ? TextFieldContainer(
-                        controller: willingToMigrateController,
-                        hint: "Enter Text",
-                        onChange: (val) {
-                          question3GroupValue3 =
-                              willingToMigrateController.text;
-                        },
-                      )
-                          : Container(),
-                    ],
-                  )),
-              (question4GroupValue == "No")
-                  ? QuestionContainer(
-                  child: Column(
-                    children: [
-                      const QuestionName(
-                        questionName: HouseHoldQuestion.ifNoReasonNotBack,
-                      ),
-                      for (var i = 0; i < question5Choices.length; i++)
-                        RadioListTile(
-                            tileColor: Colors.orangeAccent,
-                            selectedTileColor: Colors.orangeAccent,
-                            activeColor: Colors.deepOrange,
-                            title: Text(
-                              question5Choices[i].toString(),
-                              style: GoogleFonts.quicksand(
-                                fontSize: 18,
-                              ),
-                            ),
-                            value: question5Choices[i].toString(),
-                            groupValue: question5GroupValue,
-                            onChanged: (val) {
-                              setState(() {
-                                question5GroupValue = val.toString();
-                                print(question5GroupValue);
-                              });
-                            }),
-                      if (question5GroupValue == "If Other, Specify")
-                        TextFieldContainer(
-                          controller: ifNoNotGoingBackController,
+                children: [
+                  const QuestionName(
+                    questionName: HouseHoldQuestion.areWillingToAnother,
+                  ),
+                  for (var i = 0; i < question4Choices.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          question4Choices[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: question4Choices[i].toString(),
+                        groupValue: question4GroupValue,
+                        onChanged: (val) {
+                          setState(() {
+                            question4GroupValue = val.toString();
+                            print(question4GroupValue);
+                          });
+                        }),
+                  (question4GroupValue == "If yes or maybe Place / Location")
+                      ? TextFieldContainer(
+                          controller: willingToMigrateController,
                           hint: "Enter Text",
                           onChange: (val) {
-                            question5GroupValue =
-                                ifNoNotGoingBackController.text;
+                            question3GroupValue3 = willingToMigrateController.text;
                           },
                         )
-                    ],
-                  ))
+                      : Container(),
+                ],
+              )),
+              (question4GroupValue == "No")
+                  ? QuestionContainer(
+                      child: Column(
+                      children: [
+                        const QuestionName(
+                          questionName: HouseHoldQuestion.ifNoReasonNotBack,
+                        ),
+                        for (var i = 0; i < question5Choices.length; i++)
+                          RadioListTile(
+                              tileColor: Colors.orangeAccent,
+                              selectedTileColor: Colors.orangeAccent,
+                              activeColor: Colors.deepOrange,
+                              title: Text(
+                                question5Choices[i].toString(),
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 18,
+                                ),
+                              ),
+                              value: question5Choices[i].toString(),
+                              groupValue: question5GroupValue,
+                              onChanged: (val) {
+                                setState(() {
+                                  question5GroupValue = val.toString();
+                                  print(question5GroupValue);
+                                });
+                              }),
+                        if (question5GroupValue == "If Other, Specify")
+                          TextFieldContainer(
+                            controller: ifNoNotGoingBackController,
+                            hint: "Enter Text",
+                            onChange: (val) {
+                              question5GroupValue = ifNoNotGoingBackController.text;
+                            },
+                          )
+                      ],
+                    ))
                   : Container(),
 
               /*------Qusetion6------*/
@@ -400,31 +387,31 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
               /*------Qusetion6------*/
               QuestionContainer(
                   child: Column(
-                    children: [
-                      const QuestionName(
-                        questionName: HouseHoldQuestion.afterTheCovidSituation,
-                      ),
-                      for (var i = 0; i < question6Choices.length; i++)
-                        RadioListTile(
-                            tileColor: Colors.orangeAccent,
-                            selectedTileColor: Colors.orangeAccent,
-                            activeColor: Colors.deepOrange,
-                            title: Text(
-                              question6Choices[i].toString(),
-                              style: GoogleFonts.quicksand(
-                                fontSize: 18,
-                              ),
-                            ),
-                            value: question6Choices[i].toString(),
-                            groupValue: question6GroupValue,
-                            onChanged: (val) {
-                              setState(() {
-                                question6GroupValue = val.toString();
-                                print(question6GroupValue);
-                              });
-                            }),
-                    ],
-                  )),
+                children: [
+                  const QuestionName(
+                    questionName: HouseHoldQuestion.afterTheCovidSituation,
+                  ),
+                  for (var i = 0; i < question6Choices.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          question6Choices[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: question6Choices[i].toString(),
+                        groupValue: question6GroupValue,
+                        onChanged: (val) {
+                          setState(() {
+                            question6GroupValue = val.toString();
+                            print(question6GroupValue);
+                          });
+                        }),
+                ],
+              )),
 
               /*submit button*/
               ButtonSaveAndContinue(
@@ -438,8 +425,8 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
               ),
               /*Back button*/
               ButtonBack(onPress: () {
-
-                Navigator.pushNamed(context, '/user_details');
+                // Navigator.pushNamed(context, '/user_details');
+                Navigator.push(context, MaterialPageRoute(builder: (context) => UserDetailsBuilder(surveyId: widget.surveyId,)));
                 print("====>$question1GroupValue");
               }),
               const SizedBox(
@@ -478,22 +465,17 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
         "migration_type": question3GroupValue2,
         "reason_of_migration": question3GroupValue3,
         "are_you_willing_to_migrate_to_another_place": question4GroupValue,
-        "if_no_reasons_for_not_going_back_to_the_native_place":
-        question5GroupValue,
-        "after_covid19_situation_you_go_back_to_your_native_place":
-        question6GroupValue,
+        "if_no_reasons_for_not_going_back_to_the_native_place": question5GroupValue,
+        "after_covid19_situation_you_go_back_to_your_native_place": question6GroupValue,
         "household_status": "1"
       };
-
 
       print("-----${deviceResponse.data[0].household_status}");
 
       var response;
       if (deviceResponse.data[0].household_status == "1" || deviceResponse.data[0].household_status != null) {
         print("in if");
-        response = await http.put(
-            Uri.parse(
-                'http://13.232.140.106:5000/rsi-field-force-api/household?survey_id=$surveyId'),
+        response = await http.put(Uri.parse('http://13.232.140.106:5000/rsi-field-force-api/household?survey_id=$surveyId'),
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
             },
@@ -501,9 +483,7 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
       } else {
         print("in else");
         deviceResponse.data[0].household_status = "1";
-        response = await http.post(
-            Uri.parse(
-                'http://13.232.140.106:5000/rsi-field-force-api/household'),
+        response = await http.post(Uri.parse('http://13.232.140.106:5000/rsi-field-force-api/household'),
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
             },
@@ -533,14 +513,11 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
   }*/
 
   void setvaluesToForm() {
-
-    print(
-        "============================");
+    print("============================");
     print("============>${deviceResponse}<==================");
 
-
     /*1.Migrated*/
-    if (deviceResponse.data[0].migrated != null ) {
+    if (deviceResponse.data[0].migrated != null) {
       question1GroupValue = deviceResponse.data[0].migrated;
     }
     /*If yes no of years*/
@@ -569,34 +546,26 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
     //   // setSelectedRadio("< 50 Years", 1);
     // }
     /*Place of origin*/
-    if (deviceResponse.data[0].place_of_origin != null &&
-        deviceResponse.data[0].place_of_origin == "Within State") {
+    if (deviceResponse.data[0].place_of_origin != null && deviceResponse.data[0].place_of_origin == "Within State") {
       question3GroupValue1 = "Within State";
-    } else if (deviceResponse.data[0].place_of_origin != null &&
-        deviceResponse.data[0].place_of_origin == "Outside State") {
+    } else if (deviceResponse.data[0].place_of_origin != null && deviceResponse.data[0].place_of_origin == "Outside State") {
       question3GroupValue1 = "Outside State";
     }
     /*Migration type*/
-    if (deviceResponse.data[0].migration_type != null &&
-        deviceResponse.data[0].migration_type == "Seasonal") {
+    if (deviceResponse.data[0].migration_type != null && deviceResponse.data[0].migration_type == "Seasonal") {
       question3GroupValue2 = "Seasonal";
-    } else if (deviceResponse.data[0].migration_type != null &&
-        deviceResponse.data[0].migration_type == "Permanent") {
+    } else if (deviceResponse.data[0].migration_type != null && deviceResponse.data[0].migration_type == "Permanent") {
       question3GroupValue2 = "Permanent";
     }
 
     /*Reason of migration*/
-    if (deviceResponse.data[0].reason_of_migration != null &&
-        deviceResponse.data[0].reason_of_migration == "Education") {
+    if (deviceResponse.data[0].reason_of_migration != null && deviceResponse.data[0].reason_of_migration == "Education") {
       question3GroupValue3 = "Education";
-    } else if (deviceResponse.data[0].reason_of_migration != null &&
-        deviceResponse.data[0].reason_of_migration == "Employment") {
+    } else if (deviceResponse.data[0].reason_of_migration != null && deviceResponse.data[0].reason_of_migration == "Employment") {
       question3GroupValue3 = "Employment";
-    } else if (deviceResponse.data[0].reason_of_migration != null &&
-        deviceResponse.data[0].reason_of_migration == "Living Condition") {
+    } else if (deviceResponse.data[0].reason_of_migration != null && deviceResponse.data[0].reason_of_migration == "Living Condition") {
       question3GroupValue3 = "Living Condition";
-    } else if (deviceResponse.data[0].reason_of_migration != null &&
-        deviceResponse.data[0].reason_of_migration == "Accessibility") {
+    } else if (deviceResponse.data[0].reason_of_migration != null && deviceResponse.data[0].reason_of_migration == "Accessibility") {
       question3GroupValue3 = "Accessibility";
     } else if (deviceResponse.data[0].reason_of_migration != null) {
       question3GroupValue3 = "If Other, Specify";
@@ -604,80 +573,44 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
     }
 
     /*2.are_you_willing_to_migrate_to_another_place*/
-    if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place !=
-        null) {
-      question4GroupValue =
-          deviceResponse.data[0].are_you_willing_to_migrate_to_another_place;
+    if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place != null) {
+      question4GroupValue = deviceResponse.data[0].are_you_willing_to_migrate_to_another_place;
     }
-    if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place !=
-        null &&
-        deviceResponse.data[0].are_you_willing_to_migrate_to_another_place ==
-            "No") {
+    if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place != null &&
+        deviceResponse.data[0].are_you_willing_to_migrate_to_another_place == "No") {
       question4GroupValue = "No";
-    } else if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place !=
-        null &&
-        deviceResponse.data[0].are_you_willing_to_migrate_to_another_place ==
-            "Yes") {
+    } else if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place != null &&
+        deviceResponse.data[0].are_you_willing_to_migrate_to_another_place == "Yes") {
       question4GroupValue = "Yes";
-    } else if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place !=
-        null &&
-        deviceResponse.data[0].are_you_willing_to_migrate_to_another_place ==
-            "Maybe") {
+    } else if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place != null &&
+        deviceResponse.data[0].are_you_willing_to_migrate_to_another_place == "Maybe") {
       question4GroupValue = "Maybe";
-    } else if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place !=
-        null &&
-        deviceResponse.data[0].are_you_willing_to_migrate_to_another_place ==
-            "If yes or maybe Place / Location") {
+    } else if (deviceResponse.data[0].are_you_willing_to_migrate_to_another_place != null &&
+        deviceResponse.data[0].are_you_willing_to_migrate_to_another_place == "If yes or maybe Place / Location") {
       question4GroupValue = "If yes or maybe Place / Location";
-      willingToMigrateController.text =
-          deviceResponse.data[0].are_you_willing_to_migrate_to_another_place;
+      willingToMigrateController.text = deviceResponse.data[0].are_you_willing_to_migrate_to_another_place;
     }
     /*after_covid19_situation_you_go_back_to_your_native_place*/
-    if (deviceResponse.data[0]
-        .if_no_reasons_for_not_going_back_to_the_native_place !=
-        null &&
-        deviceResponse.data[0]
-            .if_no_reasons_for_not_going_back_to_the_native_place ==
-            "Earning Money") {
+    if (deviceResponse.data[0].if_no_reasons_for_not_going_back_to_the_native_place != null &&
+        deviceResponse.data[0].if_no_reasons_for_not_going_back_to_the_native_place == "Earning Money") {
       question5GroupValue = "Earning Money";
-    } else if (deviceResponse.data[0]
-        .if_no_reasons_for_not_going_back_to_the_native_place !=
-        null &&
-        deviceResponse.data[0]
-            .if_no_reasons_for_not_going_back_to_the_native_place ==
-            "Habituated") {
+    } else if (deviceResponse.data[0].if_no_reasons_for_not_going_back_to_the_native_place != null &&
+        deviceResponse.data[0].if_no_reasons_for_not_going_back_to_the_native_place == "Habituated") {
       question5GroupValue = "Habituated";
-    } else if (deviceResponse.data[0]
-        .if_no_reasons_for_not_going_back_to_the_native_place !=
-        null &&
-        deviceResponse.data[0]
-            .if_no_reasons_for_not_going_back_to_the_native_place ==
-            "Education") {
+    } else if (deviceResponse.data[0].if_no_reasons_for_not_going_back_to_the_native_place != null &&
+        deviceResponse.data[0].if_no_reasons_for_not_going_back_to_the_native_place == "Education") {
       question5GroupValue = "Education";
-    } else if (deviceResponse.data[0]
-        .if_no_reasons_for_not_going_back_to_the_native_place !=
-        null &&
-        deviceResponse.data[0]
-            .if_no_reasons_for_not_going_back_to_the_native_place ==
-            "If other, Specify") {
+    } else if (deviceResponse.data[0].if_no_reasons_for_not_going_back_to_the_native_place != null &&
+        deviceResponse.data[0].if_no_reasons_for_not_going_back_to_the_native_place == "If other, Specify") {
       question5GroupValue = "If other, Specify";
-      ifNoNotGoingBackController.text = deviceResponse.data[0]
-          .if_no_reasons_for_not_going_back_to_the_native_place;
+      ifNoNotGoingBackController.text = deviceResponse.data[0].if_no_reasons_for_not_going_back_to_the_native_place;
     }
     /*7.after_covid19_situation_you_go_back_to_your_native_place*/
-    if (deviceResponse.data[0]
-        .after_covid19_situation_you_go_back_to_your_native_place !=
-        null &&
-        deviceResponse.data[0]
-            .after_covid19_situation_you_go_back_to_your_native_place ==
-            "No") {
+    if (deviceResponse.data[0].after_covid19_situation_you_go_back_to_your_native_place != null &&
+        deviceResponse.data[0].after_covid19_situation_you_go_back_to_your_native_place == "No") {
       question6GroupValue = "No";
-    } else if (deviceResponse.data[0]
-        .after_covid19_situation_you_go_back_to_your_native_place !=
-        null &&
-        deviceResponse.data[0]
-            .after_covid19_situation_you_go_back_to_your_native_place ==
-            "Yes") {
+    } else if (deviceResponse.data[0].after_covid19_situation_you_go_back_to_your_native_place != null &&
+        deviceResponse.data[0].after_covid19_situation_you_go_back_to_your_native_place == "Yes") {
       question6GroupValue = "Yes";
     }
     setState(() {
@@ -685,12 +618,9 @@ class _HouseHoldPofilePageState extends State<HouseHoldPofilePage> {
       page();
     });
   }
+
   Future page() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("page", "/household_profile");
   }
-
-
 }
-
-

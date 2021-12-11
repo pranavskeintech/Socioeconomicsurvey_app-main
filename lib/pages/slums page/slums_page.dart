@@ -7,11 +7,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socio_survey/components/connectivity_check.dart';
 import 'package:socio_survey/components/connectivity_provider.dart';
 import 'package:socio_survey/components/get_data.dart';
+import 'package:socio_survey/components/skip_page.dart';
 import 'package:socio_survey/dbHelper/dbHelper.dart';
 import 'package:socio_survey/components/no_internet.dart';
 import 'package:socio_survey/components/table_page.dart';
 import 'package:socio_survey/components/textfield_container.dart';
 import 'package:socio_survey/json%20data/slums_data.dart';
+import 'package:socio_survey/main.dart';
 import 'package:socio_survey/models/SlumsQuestions.dart';
 import 'package:socio_survey/pages/Coastal%20Page/coastal_page.dart';
 import 'package:socio_survey/pages/environmental%20related%20page/environmental_related_page.dart';
@@ -21,7 +23,8 @@ import 'package:socio_survey/widgets/contant_widget.dart';
 import 'package:socio_survey/widgets/contants_question.dart';
 
 class SlumsPage extends StatefulWidget {
-    final String surveyId;
+  final String surveyId;
+
   SlumsPage({Key key, this.surveyId}) : super(key: key);
 
   @override
@@ -33,6 +36,7 @@ class _SlumsPageState extends State<SlumsPage> {
 
   Slums slums;
   ConnectivityCheck connectivityCheck = ConnectivityCheck();
+
   // @override
   // void initState() {
   //   Provider.of<ConnectivityProvider>(context, listen: false).startMonitoring();
@@ -53,22 +57,22 @@ class _SlumsPageState extends State<SlumsPage> {
   @override
   void initState() {
     setState(() {
-      futureData =  checkStatus();
+      futureData = checkStatus();
     });
     // futureData = getDataById(widget.surveyId);
     print("Calling initState");
+    setData();
   }
-  Future checkStatus() async
-  {
+
+  Future checkStatus() async {
     SharedPreferences _pref = await SharedPreferences.getInstance();
     final String statusOf = _pref.getString('survey_status');
     print(statusOf);
-    if (_pref.getString("survey_id") != null) {
+    /*if (_pref.getString("survey_id") != null) {
       final id = _pref.getString("survey_id");
       print("id====>${id}");
       try {
-        final response = await http.get(Uri.parse(
-            "http://13.232.140.106:5000/rsi-field-force-api/survey/get-individual-survey-details?survey_id=$id"));
+        final response = await http.get(Uri.parse("http://13.232.140.106:5000/rsi-field-force-api/survey/get-individual-survey-details?survey_id=$id"));
         if (response.statusCode == 200) {
           print("Response===-----${response.body}");
           deviceResponseSlums = DeviceId.fromJson(jsonDecode(response.body));
@@ -86,8 +90,7 @@ class _SlumsPageState extends State<SlumsPage> {
       } catch (e) {
         print("error" + e.toString());
       }
-    }
-
+    }*/
   }
 
   Future page() async {
@@ -124,8 +127,7 @@ class _SlumsPageState extends State<SlumsPage> {
   TextEditingController typeOfRationCardController = TextEditingController();
   TextEditingController lifeInSlumAresController = TextEditingController();
   TextEditingController whatKindProblemFaceController = TextEditingController();
-  TextEditingController ifNotGoingSchoolDropoutAgeController =
-      TextEditingController();
+  TextEditingController ifNotGoingSchoolDropoutAgeController = TextEditingController();
   TextEditingController reasonDropOutController = TextEditingController();
   TextEditingController alternativController = TextEditingController();
   TextEditingController anyFurtherSuggController = TextEditingController();
@@ -133,22 +135,9 @@ class _SlumsPageState extends State<SlumsPage> {
   List qtnCho2 = ["Government", "Private"];
   List qtnChoGovernment = ["Patta Holder", "Non-Patta Holder"];
   List qtnCho3 = ["> 5 Year", "5 to 10 Years", "10 to 25 Years", "< 25 Years"];
-  List qtnCho4 = [
-    "Construction labourer",
-    "Rack picker",
-    "Driver",
-    "Daily wage labour",
-    "If Other, Specify"
-  ];
+  List qtnCho4 = ["Construction labourer", "Rack picker", "Driver", "Daily wage labour", "If Other, Specify"];
   List qtnCho15 = ["Not so bad", "No other way", "Other"];
-  List qtnCho16 = [
-    "Drainage",
-    "No proper ventilation",
-    "Drinking water",
-    "Electricity",
-    "Health",
-    "If Others, Specify"
-  ];
+  List qtnCho16 = ["Drainage", "No proper ventilation", "Drinking water", "Electricity", "Health", "If Others, Specify"];
   List qtnIfSchool = ["Government", "Private", "Others"];
   List qtnChoYesNo = ["Yes", "No"];
 
@@ -184,10 +173,10 @@ class _SlumsPageState extends State<SlumsPage> {
           case ConnectionState.waiting:
             return Center(
                 child: CircularProgressIndicator(
-                  color: Colors.deepOrangeAccent,
-                  backgroundColor: Colors.blue,
-                  strokeWidth: 5.0,
-                ));
+              color: Colors.deepOrangeAccent,
+              backgroundColor: Colors.blue,
+              strokeWidth: 5.0,
+            ));
           default:
             if (snapshot.hasError)
               return Center(child: Text('Error: ${snapshot.error}'));
@@ -197,9 +186,46 @@ class _SlumsPageState extends State<SlumsPage> {
         }
       },
     );
+  }
 
+  void setData() {
+    if (widget.surveyId == null) {
+      return;
+    }
+    print("Here == ");
+    qtnGrpVal1 = surveyModel.doesThisPlaceIsAllottedToYouByAnyAuthority;
+    qtnGrpVal2 = surveyModel.statusOfLand;
+    qtnGrpValGover = surveyModel.ifGovernmentLandIsThereAnyPatta;
+    qtnGrpVal3 = surveyModel.howLongHaveYouStayedHere;
+    qtnGrpVal4 = surveyModel.typesOfWorkInWhichYouAreEngaged;
+    qtnGrpVal5 = surveyModel.areYouSkilledLabour;
 
+    ifSkilledLabourController.text = surveyModel.ifYesSkillTypeCarpenterElectricianEtc;
+    qtnGrpVal6 = surveyModel.dueToTheCovid19HasTheIncomeAndJobBeenAffected;
+    qtnGrpVal7 = surveyModel.doYouGetAnyRationAssistanceFromTheGovernment;
+    typeOfRationCardController.text = surveyModel.typeOfRationCardYouAvailable;
+    qtnGrpVal9 = surveyModel.doYouGetAnyFinancialAssistanceFromTheGovernment;
 
+    qtnGrpVal10 = surveyModel.getAnyBenefitsFromAnyStateOrCentralHousingSchemes;
+
+    qtnGrpVal11 = surveyModel.allottedHouseUnderSlumRehabilitationProjectOfGovernment;
+
+    qtnGrpVal12 = surveyModel.ifGovernmentProvidesAHouseWouldYouMoveToThatPlace;
+
+    qtnGrpVal13 = surveyModel.doYouGetAnyBenefitOfSwasthyaSathiForHealthAssistance;
+
+    qtnGrpVal14 = surveyModel.willingToGoBackToNativeIfSuitableJobsAreMadeAvailable;
+    qtnGrpVal15 = surveyModel.whatDoYouSayAboutLifeInSlumAreas;
+    qtnGrpVal16 = surveyModel.whatKindOfProblemsDoYouFace;
+    qtnGrpVal17 = surveyModel.doYouFaceAnyProblemsFromIndustriesAroundYou;
+    qtnGrpVal18 = surveyModel.whetherAllChildrenEnrolledInTheSchool;
+    qtnGrpValSchool = surveyModel.ifYesWhichTypeOfSchool;
+
+    ifNotGoingSchoolDropoutAgeController.text = surveyModel.ifNotGoingToSchoolDropOutAge;
+    reasonDropOutController.text = surveyModel.reasonOfDropOut;
+    alternativController.text = surveyModel.alternativeEconomicActivitiesForLivelihood;
+    anyFurtherSuggController.text = surveyModel.anyFurtherSuggestionOrIssuesForImprovementRegardingSlums;
+    print("Check == ${surveyModel.anyFurtherSuggestionOrIssuesForImprovementRegardingSlums}");
   }
 
   Future postMethod() async {
@@ -207,8 +233,7 @@ class _SlumsPageState extends State<SlumsPage> {
     String tableData = _preferences.getString('table') ?? "Not Answered";
 
     final deviceId = _preferences.getString('D_id');
-    final surveyId =
-        _preferences.getString('survey_id') ?? '${deviceId.toString()}' + 'S1';
+    final surveyId = _preferences.getString('survey_id') ?? '${deviceId.toString()}' + 'S1';
     try {
       var data = {
         "survey_id": surveyId,
@@ -218,76 +243,57 @@ class _SlumsPageState extends State<SlumsPage> {
         "how_long_have_you_stayed_here": qtnGrpVal3,
         "types_of_work_in_which_you_are_engaged": qtnGrpVal4,
         "are_you_skilled_labour": qtnGrpVal5,
-        "if_yes_skill_type_carpenter_electrician_etc":
-            ifSkilledLabourController.text,
+        "if_yes_skill_type_carpenter_electrician_etc": ifSkilledLabourController.text,
         "due_to_the_covid19_has_the_income_and_job_been_affected": qtnGrpVal6,
         "do_you_get_any_ration_assistance_from_the_government": qtnGrpVal7,
         "type_of_ration_card_you_available": typeOfRationCardController.text,
         "do_you_get_any_financial_assistance_from_the_government": qtnGrpVal9,
-        "get_any_benefits_from_any_state_or_central_housing_schemes":
-            qtnGrpVal10,
-        "allotted_house_under_slum_rehabilitation_project_of_government":
-            qtnGrpVal11,
-        "if_government_provides_a_house_would_you_move_to_that_place":
-            qtnGrpVal12,
-        "do_you_get_any_benefit_of_swasthya_sathi_for_health_assistance":
-            qtnGrpVal13,
-        "willing_to_go_back_to_native_if_suitable_jobs_are_made_available":
-            qtnGrpVal14,
+        "get_any_benefits_from_any_state_or_central_housing_schemes": qtnGrpVal10,
+        "allotted_house_under_slum_rehabilitation_project_of_government": qtnGrpVal11,
+        "if_government_provides_a_house_would_you_move_to_that_place": qtnGrpVal12,
+        "do_you_get_any_benefit_of_swasthya_sathi_for_health_assistance": qtnGrpVal13,
+        "willing_to_go_back_to_native_if_suitable_jobs_are_made_available": qtnGrpVal14,
         "what_do_you_say_about_life_in_slum_areas": qtnGrpVal15,
         "what_kind_of_problems_do_you_face": qtnGrpVal16,
         "do_you_face_any_problems_from_industries_around_you": qtnGrpVal17,
         "whether_all_children_enrolled_in_the_school": qtnGrpVal18,
         "if_yes_which_type_of_school": qtnGrpValSchool,
-        "if_not_going_to_school_drop_out_age":
-            ifNotGoingSchoolDropoutAgeController.text,
+        "if_not_going_to_school_drop_out_age": ifNotGoingSchoolDropoutAgeController.text,
         "reason_of_drop_out": reasonDropOutController.text,
         "if_more_than_one_student": tableData.toString() ?? "",
-        "alternative_economic_activities_for_livelihood":
-            alternativController.text,
-        "any_further_suggestion_or_issues_for_improvement_regarding_slums":
-            anyFurtherSuggController.text,
-        "slums_status":"1"
-
+        "alternative_economic_activities_for_livelihood": alternativController.text,
+        "any_further_suggestion_or_issues_for_improvement_regarding_slums": anyFurtherSuggController.text,
+        "slums_status": "1"
       };
       var dataUpdate = {
-       // "survey_id": surveyId,
+        // "survey_id": surveyId,
         "does_this_place_is_allotted_to_you_by_any_authority": qtnGrpVal1,
         "status_of_land": qtnGrpVal2,
         "if_government_land_is_there_any_patta": qtnGrpValGover,
         "how_long_have_you_stayed_here": qtnGrpVal3,
         "types_of_work_in_which_you_are_engaged": qtnGrpVal4,
         "are_you_skilled_labour": qtnGrpVal5,
-        "if_yes_skill_type_carpenter_electrician_etc":
-        ifSkilledLabourController.text,
+        "if_yes_skill_type_carpenter_electrician_etc": ifSkilledLabourController.text,
         "due_to_the_covid19_has_the_income_and_job_been_affected": qtnGrpVal6,
         "do_you_get_any_ration_assistance_from_the_government": qtnGrpVal7,
         "type_of_ration_card_you_available": typeOfRationCardController.text,
         "do_you_get_any_financial_assistance_from_the_government": qtnGrpVal9,
-        "get_any_benefits_from_any_state_or_central_housing_schemes":
-        qtnGrpVal10,
-        "allotted_house_under_slum_rehabilitation_project_of_government":
-        qtnGrpVal11,
-        "if_government_provides_a_house_would_you_move_to_that_place":
-        qtnGrpVal12,
-        "do_you_get_any_benefit_of_swasthya_sathi_for_health_assistance":
-        qtnGrpVal13,
-        "willing_to_go_back_to_native_if_suitable_jobs_are_made_available":
-        qtnGrpVal14,
+        "get_any_benefits_from_any_state_or_central_housing_schemes": qtnGrpVal10,
+        "allotted_house_under_slum_rehabilitation_project_of_government": qtnGrpVal11,
+        "if_government_provides_a_house_would_you_move_to_that_place": qtnGrpVal12,
+        "do_you_get_any_benefit_of_swasthya_sathi_for_health_assistance": qtnGrpVal13,
+        "willing_to_go_back_to_native_if_suitable_jobs_are_made_available": qtnGrpVal14,
         "what_do_you_say_about_life_in_slum_areas": qtnGrpVal15,
         "what_kind_of_problems_do_you_face": qtnGrpVal16,
         "do_you_face_any_problems_from_industries_around_you": qtnGrpVal17,
         "whether_all_children_enrolled_in_the_school": qtnGrpVal18,
         "if_yes_which_type_of_school": qtnGrpValSchool,
-        "if_not_going_to_school_drop_out_age":
-        ifNotGoingSchoolDropoutAgeController.text,
+        "if_not_going_to_school_drop_out_age": ifNotGoingSchoolDropoutAgeController.text,
         "reason_of_drop_out": reasonDropOutController.text,
         "if_more_than_one_student": tableData.toString() ?? "",
-        "alternative_economic_activities_for_livelihood":
-        alternativController.text,
-        "any_further_suggestion_or_issues_for_improvement_regarding_slums":
-        anyFurtherSuggController.text,
-        "slums_status":"1"
+        "alternative_economic_activities_for_livelihood": alternativController.text,
+        "any_further_suggestion_or_issues_for_improvement_regarding_slums": anyFurtherSuggController.text,
+        "slums_status": "1"
       };
 
       // var response = await http.post(
@@ -297,37 +303,27 @@ class _SlumsPageState extends State<SlumsPage> {
       //     },
       //     body: json.encode(data));
 
-
-
-
       var response;
       if (deviceResponseSlums.data[0].slums_status == "1" || deviceResponseSlums.data[0].slums_status != null) {
         print("in if");
         print(dataUpdate);
-        response = await http.put(
-            Uri.parse(
-                'http://13.232.140.106:5000/rsi-field-force-api/slums?survey_id=$surveyId'),
+        response = await http.put(Uri.parse('http://13.232.140.106:5000/rsi-field-force-api/slums?survey_id=$surveyId'),
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
             },
             body: json.encode(dataUpdate));
         print(response.body);
-
       } else {
         print("in else");
         print(data);
         deviceResponseSlums.data[0].slums_status = "1";
-        response = await http.post(
-            Uri.parse(
-                'http://13.232.140.106:5000/rsi-field-force-api/slums'),
+        response = await http.post(Uri.parse('http://13.232.140.106:5000/rsi-field-force-api/slums'),
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
             },
             body: json.encode(data));
         print(response.body);
       }
-
-
 
       // print(response.body);
       String id = response.body;
@@ -404,725 +400,687 @@ class _SlumsPageState extends State<SlumsPage> {
     return Scaffold(
       key: scaffoldKey,
       body: GestureDetector(
-        onTap: (){
+        onTap: () {
           FocusScope.of(context).unfocus();
         },
         child: SingleChildScrollView(
             child: QuestionBody(
-              questionBody: Column(
+          questionBody: Column(
+            children: [
+              const PageTitleWidget(title: PageTitle.slums),
+              /*------Qusetion1------*/
+              QuestionContainer(
+                  child: Column(
                 children: [
-                  const PageTitleWidget(title: PageTitle.slums),
-                  /*------Qusetion1------*/
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(questionName: SlumsQuestion.doPlaceAllocted),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal1,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal1 = val.toString();
-                                    print(qtnGrpVal1);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(questionName: SlumsQuestion.statusLand),
-                          for (var i = 0; i < qtnCho2.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnCho2[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnCho2[i].toString(),
-                                groupValue: qtnGrpVal2,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal2 = val.toString();
-                                    print(qtnGrpVal2);
-                                  });
-                                }),
-                        ],
-                      )),
-                  qtnGrpVal2 == "Government"
-                      ? QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.ifGovernmentLand),
-                          for (var i = 0; i < qtnChoGovernment.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoGovernment[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoGovernment[i].toString(),
-                                groupValue: qtnGrpValGover,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpValGover = val.toString();
-                                    print(qtnGrpValGover);
-                                  });
-                                }),
-                        ],
-                      ))
-                      : Container(),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.howLongStayedHere),
-                          for (var i = 0; i < qtnCho3.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnCho3[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnCho3[i].toString(),
-                                groupValue: qtnGrpVal3,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal3 = val.toString();
-                                    print(qtnGrpVal3);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.typeYouAreEngaged),
-                          for (var i = 0; i < qtnCho4.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnCho4[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnCho4[i].toString(),
-                                groupValue: qtnGrpVal4,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal4 = val.toString();
-                                    print(qtnGrpVal4);
-                                  });
-                                }),
-                          (qtnGrpVal4 == "If Other, Specify")
-                              ? TextFieldContainer(
-                            controller: typeOfWorkController,
-                            hint: "Enter Text",
-                          )
-                              : Container(),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.areYouSkilledLabour),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal5,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal5 = val.toString();
-                                    print(qtnGrpVal5);
-                                  });
-                                }),
-                        ],
-                      )),
-
-                  qtnGrpVal5 == "Yes"
-                      ? QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.ifYesSkillType),
-                          TextFieldContainer(
-                            controller: ifSkilledLabourController,
-                            hint: "Enter Text",
-                          )
-                        ],
-                      ))
-                      : Container(),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(questionName: SlumsQuestion.dueToTheCovid19),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal6,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal6 = val.toString();
-                                    print(qtnGrpVal6);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.doYouGetAnyRationAssistance),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal7,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal7 = val.toString();
-                                    print(qtnGrpVal7);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.typeOfRationCard),
-                          TextFieldContainer(
-                            controller: typeOfRationCardController,
-                            hint: "Enter Text",
-                          )
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.anyFinancialAssitence),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal9,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal9 = val.toString();
-                                    print(qtnGrpVal9);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.doYouGetBenefitHosingScheme),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal10,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal10 = val.toString();
-                                    print(qtnGrpVal10);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.haveAllottedAnyHouse),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal11,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal11 = val.toString();
-                                    print(qtnGrpVal11);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.ifGovernmentProvideHouse),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal12,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal12 = val.toString();
-                                    print(qtnGrpVal12);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(questionName: SlumsQuestion.swasthyaSathi),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal13,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal13 = val.toString();
-                                    print(qtnGrpVal13);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.areYouWillingToGoBack),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal14,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal14 = val.toString();
-                                    print(qtnGrpVal14);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.whatDoYouSaySlumAreas),
-                          for (var i = 0; i < qtnCho15.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnCho15[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnCho15[i].toString(),
-                                groupValue: qtnGrpVal15,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal15 = val.toString();
-                                    print(qtnGrpVal15);
-                                  });
-                                }),
-                          (qtnGrpVal15 == "Other")
-                              ? TextFieldContainer(
-                            controller: lifeInSlumAresController,
-                            hint: "Enter Text",
-                          )
-                              : Container(),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.whatKindProblemsFace),
-                          for (var i = 0; i < qtnCho16.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnCho16[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnCho16[i].toString(),
-                                groupValue: qtnGrpVal16,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal16 = val.toString();
-                                    print(qtnGrpVal16);
-                                  });
-                                }),
-                          (qtnGrpVal16 == "If Others, Specify")
-                              ? TextFieldContainer(
-                            controller: whatKindProblemFaceController,
-                            hint: "Enter Text",
-                          )
-                              : Container(),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.doYouFaceProblemsIndustries),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal17,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal17 = val.toString();
-                                    print(qtnGrpVal17);
-                                  });
-                                }),
-                        ],
-                      )),
-                  QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.whetherAllChildren),
-                          for (var i = 0; i < qtnChoYesNo.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnChoYesNo[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnChoYesNo[i].toString(),
-                                groupValue: qtnGrpVal18,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpVal18 = val.toString();
-                                    print(qtnGrpVal18);
-                                  });
-                                }),
-                        ],
-                      )),
-
-                  qtnGrpVal18 == "Yes"
-                      ? QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.ifYesWhichTypeSchool),
-                          for (var i = 0; i < qtnIfSchool.length; i++)
-                            RadioListTile(
-                                tileColor: Colors.orangeAccent,
-                                selectedTileColor: Colors.orangeAccent,
-                                activeColor: Colors.deepOrange,
-                                title: Text(
-                                  qtnIfSchool[i].toString(),
-                                  style: GoogleFonts.quicksand(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                value: qtnIfSchool[i].toString(),
-                                groupValue: qtnGrpValSchool,
-                                onChanged: (val) {
-                                  setState(() {
-                                    qtnGrpValSchool = val.toString();
-                                    print(qtnGrpValSchool);
-                                  });
-                                }),
-                          (qtnGrpValSchool == "Others")
-                              ? TextFieldContainer(
-                            controller: whichTypeSchoolController,
-                            hint: "Enter Text",
-                          )
-                              : Container(),
-                        ],
-                      ))
-                      : Container(),
-                  qtnGrpVal18 == "Yes"
-                      ? QuestionContainer(
-                      child: Column(
-                        children: [
-                          QuestionName(
-                              questionName: SlumsQuestion.ifNotSchoolDropOutAge),
-                          TextFieldContainer(
-                            controller: ifNotGoingSchoolDropoutAgeController,
-                            inputType: TextInputType.number,
-                            hint: "Enter Drop out Age",
+                  const QuestionName(questionName: SlumsQuestion.doPlaceAllocted),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
                           ),
-                        ],
-                      ))
-                      : Container(),
-                  qtnGrpVal18 == "Yes"
-                      ? QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.reasonDropOut),
-                          TextFieldContainer(
-                            controller: reasonDropOutController,
-                            hint: "Enter Text",
-                          )
-                        ],
-                      ))
-                      : Container(),
-                  qtnGrpVal18 == "Yes"
-                      ? QuestionContainer(
-                      child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.ifMoreFillTable),
-                          SizedBox(
-                            height: 10,
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal1,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal1 = val.toString();
+                            print(qtnGrpVal1);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.statusLand),
+                  for (var i = 0; i < qtnCho2.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnCho2[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
                           ),
-                          InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => TablePage()));
-                              },
-                              child: Center(
-                                  child: Text(
-                                    "Click here to Open Table",
-                                    style: GoogleFonts.quicksand(
-                                        fontSize: 18, color: Colors.red),
-                                  )))
-                        ],
-                      ))
+                        ),
+                        value: qtnCho2[i].toString(),
+                        groupValue: qtnGrpVal2,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal2 = val.toString();
+                            print(qtnGrpVal2);
+                          });
+                        }),
+                ],
+              )),
+              qtnGrpVal2 == "Government"
+                  ? QuestionContainer(
+                      child: Column(
+                      children: [
+                        const QuestionName(questionName: SlumsQuestion.ifGovernmentLand),
+                        for (var i = 0; i < qtnChoGovernment.length; i++)
+                          RadioListTile(
+                              tileColor: Colors.orangeAccent,
+                              selectedTileColor: Colors.orangeAccent,
+                              activeColor: Colors.deepOrange,
+                              title: Text(
+                                qtnChoGovernment[i].toString(),
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 18,
+                                ),
+                              ),
+                              value: qtnChoGovernment[i].toString(),
+                              groupValue: qtnGrpValGover,
+                              onChanged: (val) {
+                                setState(() {
+                                  qtnGrpValGover = val.toString();
+                                  print(qtnGrpValGover);
+                                });
+                              }),
+                      ],
+                    ))
+                  : Container(),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.howLongStayedHere),
+                  for (var i = 0; i < qtnCho3.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnCho3[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnCho3[i].toString(),
+                        groupValue: qtnGrpVal3,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal3 = val.toString();
+                            print(qtnGrpVal3);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.typeYouAreEngaged),
+                  for (var i = 0; i < qtnCho4.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnCho4[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnCho4[i].toString(),
+                        groupValue: qtnGrpVal4,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal4 = val.toString();
+                            print(qtnGrpVal4);
+                          });
+                        }),
+                  (qtnGrpVal4 == "If Other, Specify")
+                      ? TextFieldContainer(
+                          controller: typeOfWorkController,
+                          hint: "Enter Text",
+                        )
                       : Container(),
-                  QuestionContainer(
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.areYouSkilledLabour),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal5,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal5 = val.toString();
+                            print(qtnGrpVal5);
+                          });
+                        }),
+                ],
+              )),
+
+              qtnGrpVal5 == "Yes"
+                  ? QuestionContainer(
                       child: Column(
-                        children: [
-                          const QuestionName(
-                              questionName: SlumsQuestion.alternativeEconomiclivelihood),
-                          TextFieldContainer(
-                            controller: alternativController,
-                            hint: "Enter Text",
-                          )
-                        ],
-                      )),
-                  QuestionContainer(
+                      children: [
+                        const QuestionName(questionName: SlumsQuestion.ifYesSkillType),
+                        TextFieldContainer(
+                          controller: ifSkilledLabourController,
+                          hint: "Enter Text",
+                        )
+                      ],
+                    ))
+                  : Container(),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.dueToTheCovid19),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal6,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal6 = val.toString();
+                            print(qtnGrpVal6);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.doYouGetAnyRationAssistance),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal7,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal7 = val.toString();
+                            print(qtnGrpVal7);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.typeOfRationCard),
+                  TextFieldContainer(
+                    controller: typeOfRationCardController,
+                    hint: "Enter Text",
+                  )
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.anyFinancialAssitence),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal9,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal9 = val.toString();
+                            print(qtnGrpVal9);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.doYouGetBenefitHosingScheme),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal10,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal10 = val.toString();
+                            print(qtnGrpVal10);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.haveAllottedAnyHouse),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal11,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal11 = val.toString();
+                            print(qtnGrpVal11);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.ifGovernmentProvideHouse),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal12,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal12 = val.toString();
+                            print(qtnGrpVal12);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.swasthyaSathi),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal13,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal13 = val.toString();
+                            print(qtnGrpVal13);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.areYouWillingToGoBack),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal14,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal14 = val.toString();
+                            print(qtnGrpVal14);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.whatDoYouSaySlumAreas),
+                  for (var i = 0; i < qtnCho15.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnCho15[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnCho15[i].toString(),
+                        groupValue: qtnGrpVal15,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal15 = val.toString();
+                            print(qtnGrpVal15);
+                          });
+                        }),
+                  (qtnGrpVal15 == "Other")
+                      ? TextFieldContainer(
+                          controller: lifeInSlumAresController,
+                          hint: "Enter Text",
+                        )
+                      : Container(),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.whatKindProblemsFace),
+                  for (var i = 0; i < qtnCho16.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnCho16[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnCho16[i].toString(),
+                        groupValue: qtnGrpVal16,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal16 = val.toString();
+                            print(qtnGrpVal16);
+                          });
+                        }),
+                  (qtnGrpVal16 == "If Others, Specify")
+                      ? TextFieldContainer(
+                          controller: whatKindProblemFaceController,
+                          hint: "Enter Text",
+                        )
+                      : Container(),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.doYouFaceProblemsIndustries),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal17,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal17 = val.toString();
+                            print(qtnGrpVal17);
+                          });
+                        }),
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.whetherAllChildren),
+                  for (var i = 0; i < qtnChoYesNo.length; i++)
+                    RadioListTile(
+                        tileColor: Colors.orangeAccent,
+                        selectedTileColor: Colors.orangeAccent,
+                        activeColor: Colors.deepOrange,
+                        title: Text(
+                          qtnChoYesNo[i].toString(),
+                          style: GoogleFonts.quicksand(
+                            fontSize: 18,
+                          ),
+                        ),
+                        value: qtnChoYesNo[i].toString(),
+                        groupValue: qtnGrpVal18,
+                        onChanged: (val) {
+                          setState(() {
+                            qtnGrpVal18 = val.toString();
+                            print(qtnGrpVal18);
+                          });
+                        }),
+                ],
+              )),
+
+              qtnGrpVal18 == "Yes"
+                  ? QuestionContainer(
                       child: Column(
-                        children: [
-                          QuestionName(questionName: SlumsQuestion.anyFurtherSuggestion),
-                          TextFieldContainer(
-                            controller: anyFurtherSuggController,
-                            hint: "Enter Text",
-                          )
-                        ],
-                      )),
+                      children: [
+                        const QuestionName(questionName: SlumsQuestion.ifYesWhichTypeSchool),
+                        for (var i = 0; i < qtnIfSchool.length; i++)
+                          RadioListTile(
+                              tileColor: Colors.orangeAccent,
+                              selectedTileColor: Colors.orangeAccent,
+                              activeColor: Colors.deepOrange,
+                              title: Text(
+                                qtnIfSchool[i].toString(),
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 18,
+                                ),
+                              ),
+                              value: qtnIfSchool[i].toString(),
+                              groupValue: qtnGrpValSchool,
+                              onChanged: (val) {
+                                setState(() {
+                                  qtnGrpValSchool = val.toString();
+                                  print(qtnGrpValSchool);
+                                });
+                              }),
+                        (qtnGrpValSchool == "Others")
+                            ? TextFieldContainer(
+                                controller: whichTypeSchoolController,
+                                hint: "Enter Text",
+                              )
+                            : Container(),
+                      ],
+                    ))
+                  : Container(),
+              qtnGrpVal18 == "Yes"
+                  ? QuestionContainer(
+                      child: Column(
+                      children: [
+                        QuestionName(questionName: SlumsQuestion.ifNotSchoolDropOutAge),
+                        TextFieldContainer(
+                          controller: ifNotGoingSchoolDropoutAgeController,
+                          inputType: TextInputType.number,
+                          hint: "Enter Drop out Age",
+                        ),
+                      ],
+                    ))
+                  : Container(),
+              qtnGrpVal18 == "Yes"
+                  ? QuestionContainer(
+                      child: Column(
+                      children: [
+                        const QuestionName(questionName: SlumsQuestion.reasonDropOut),
+                        TextFieldContainer(
+                          controller: reasonDropOutController,
+                          hint: "Enter Text",
+                        )
+                      ],
+                    ))
+                  : Container(),
+              qtnGrpVal18 == "Yes"
+                  ? QuestionContainer(
+                      child: Column(
+                      children: [
+                        const QuestionName(questionName: SlumsQuestion.ifMoreFillTable),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        InkWell(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => TablePage()));
+                            },
+                            child: Center(
+                                child: Text(
+                              "Click here to Open Table",
+                              style: GoogleFonts.quicksand(fontSize: 18, color: Colors.red),
+                            )))
+                      ],
+                    ))
+                  : Container(),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  const QuestionName(questionName: SlumsQuestion.alternativeEconomiclivelihood),
+                  TextFieldContainer(
+                    controller: alternativController,
+                    hint: "Enter Text",
+                  )
+                ],
+              )),
+              QuestionContainer(
+                  child: Column(
+                children: [
+                  QuestionName(questionName: SlumsQuestion.anyFurtherSuggestion),
+                  TextFieldContainer(
+                    controller: anyFurtherSuggController,
+                    hint: "Enter Text",
+                  )
+                ],
+              )),
 
 //------------------------------------------------
-                  //------------------------------------------------
-                  /*submit button*/
-                  ButtonSaveAndContinue(
-                    onPress: () async{
-                      print("dfghdgfhd");
+              //------------------------------------------------
+              /*submit button*/
+              ButtonSaveAndContinue(
+                onPress: () async {
+                  print("dfghdgfhd");
 
-                     // Navigator.pushNamed(context, "/environmentalRelated_page");
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => EnvironmentalRelatedPage(data:"hi")));
+                  // Navigator.pushNamed(context, "/environmentalRelated_page");
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => EnvironmentalRelatedPage(data: "hi")));
 
-
-                      await postMethod();
-
-                    },
-                  ),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  /*Back button*/
-                  ButtonBack(onPress: () async {
-                    SharedPreferences _pref = await SharedPreferences.getInstance();
-                    final String statusOf = _pref.getString('survey_status');
-                    if (statusOf == "pending_survey")
-                    {
-                      Navigator.pushNamed(context, '/skip_page');
-                    }
-                    else
-                    {
-                      Navigator.pop(context);
-                    }
-
-
-
-
-                  }),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  /*Save And Exit button*/
-                  ButtonSaveAndExit(onPress: () {
-                    Navigator.pushNamed(context, '/landing_page');
-
-
-                  }),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                ],
+                  await postMethod();
+                },
               ),
-            )),
+              const SizedBox(
+                height: 15,
+              ),
+              /*Back button*/
+              ButtonBack(onPress: () async {
+                SharedPreferences _pref = await SharedPreferences.getInstance();
+                final String statusOf = _pref.getString('survey_status');
+                if (statusOf == "pending_survey") {
+                  // Navigator.pushNamed(context, '/skip_page');
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>SkipPage(surveyId: widget.surveyId,)));
+                } else {
+                  Navigator.pop(context);
+                }
+              }),
+              const SizedBox(
+                height: 15,
+              ),
+              /*Save And Exit button*/
+              ButtonSaveAndExit(onPress: () {
+                Navigator.pushNamed(context, '/landing_page');
+              }),
+              const SizedBox(
+                height: 15,
+              ),
+            ],
+          ),
+        )),
       ),
     );
   }
 
-  // Widget tableData() {
-  //   return Editable(
-  //     key: _editableKey,
-  //     columns: cols,
-  //     rows: rows,
-  //     //zebraStripe: true,
-  //     // stripeColor1: Colors.blue[50],
-  //     //stripeColor2: Colors.grey[200],
-  //     onRowSaved: (value) {
-  //       print(value);
-  //     },
-  //     onSubmitted: (value) {
-  //       print(value);
-  //     },
-  //     //borderColor: Color(0xfff89d4cf),
-  //     // tdStyle: TextStyle(fontWeight: FontWeight.),
-  //     trHeight: 80,
-  //     thStyle: TextStyle(fontSize: 15),
-  //     thAlignment: TextAlign.center,
-  //     thVertAlignment: CrossAxisAlignment.end,
-  //     thPaddingBottom: 3,
-  //     //showSaveIcon: true,
-  //     //saveIconColor: Colors.black,
-  //     // showCreateButton: true,
-  //     tdAlignment: TextAlign.left,
-  //     tdEditableMaxLines: 100, // don't limit and allow data to wrap
-  //     tdPaddingTop: 0,
-  //     tdPaddingBottom: 14,
-  //     tdPaddingLeft: 10,
-  //     tdPaddingRight: 8,
-  //     focusedBorder: OutlineInputBorder(
-  //         borderSide: BorderSide(color: Colors.blue),
-  //         borderRadius: BorderRadius.all(Radius.circular(0))),
-  //   );
-  // }
+// Widget tableData() {
+//   return Editable(
+//     key: _editableKey,
+//     columns: cols,
+//     rows: rows,
+//     //zebraStripe: true,
+//     // stripeColor1: Colors.blue[50],
+//     //stripeColor2: Colors.grey[200],
+//     onRowSaved: (value) {
+//       print(value);
+//     },
+//     onSubmitted: (value) {
+//       print(value);
+//     },
+//     //borderColor: Color(0xfff89d4cf),
+//     // tdStyle: TextStyle(fontWeight: FontWeight.),
+//     trHeight: 80,
+//     thStyle: TextStyle(fontSize: 15),
+//     thAlignment: TextAlign.center,
+//     thVertAlignment: CrossAxisAlignment.end,
+//     thPaddingBottom: 3,
+//     //showSaveIcon: true,
+//     //saveIconColor: Colors.black,
+//     // showCreateButton: true,
+//     tdAlignment: TextAlign.left,
+//     tdEditableMaxLines: 100, // don't limit and allow data to wrap
+//     tdPaddingTop: 0,
+//     tdPaddingBottom: 14,
+//     tdPaddingLeft: 10,
+//     tdPaddingRight: 8,
+//     focusedBorder: OutlineInputBorder(
+//         borderSide: BorderSide(color: Colors.blue),
+//         borderRadius: BorderRadius.all(Radius.circular(0))),
+//   );
+// }
 }
 
 // class TableData extends StatelessWidget {

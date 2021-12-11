@@ -12,13 +12,18 @@ import 'package:socio_survey/components/connectivity_provider.dart';
 import 'package:socio_survey/components/get_data.dart';
 import 'package:socio_survey/dbHelper/dbHelper.dart';
 import 'package:socio_survey/json%20data/culturalHeritage_data.dart';
+import 'package:socio_survey/main.dart';
 import 'package:socio_survey/models/CulturalQuestion.dart';
+import 'package:socio_survey/models/EnvironmentalQuestion.dart';
 import 'package:socio_survey/pages/Tourism%20Page/tourism_page.dart';
+import 'package:socio_survey/pages/environmental%20related%20page/environmental_related_page.dart';
 import 'package:socio_survey/widgets/contant_widget.dart';
 import 'package:socio_survey/widgets/contants_question.dart';
 
 class CulturalAndHeritage extends StatefulWidget {
-  CulturalAndHeritage({Key key}) : super(key: key);
+  final surveyId;
+
+  CulturalAndHeritage({Key key, this.surveyId}) : super(key: key);
 
   @override
   _CulturalAndHeritageState createState() => _CulturalAndHeritageState();
@@ -48,13 +53,14 @@ class _CulturalAndHeritageState extends State<CulturalAndHeritage> {
 
   @override
   void initState() {
+    setData();
     setState(() {
-      futureData =  checkStatus();
+      futureData = checkStatus();
     });
     print("Calling initState");
   }
-  Future checkStatus() async
-  {
+
+  Future checkStatus() async {
     SharedPreferences _pref = await SharedPreferences.getInstance();
     final String statusOf = _pref.getString('survey_status');
     print(statusOf);
@@ -62,8 +68,7 @@ class _CulturalAndHeritageState extends State<CulturalAndHeritage> {
       final id = _pref.getString("survey_id");
       print("id====>${id}");
       try {
-        final response = await http.get(Uri.parse(
-            "http://13.232.140.106:5000/rsi-field-force-api/survey/get-individual-survey-details?survey_id=$id"));
+        final response = await http.get(Uri.parse("http://13.232.140.106:5000/rsi-field-force-api/survey/get-individual-survey-details?survey_id=$id"));
         if (response.statusCode == 200) {
           print("Response===-----${response.body}");
           deviceResponseCultural = DeviceId.fromJson(jsonDecode(response.body));
@@ -82,7 +87,6 @@ class _CulturalAndHeritageState extends State<CulturalAndHeritage> {
         print("error" + e.toString());
       }
     }
-
   }
 
   Future page() async {
@@ -103,79 +107,25 @@ class _CulturalAndHeritageState extends State<CulturalAndHeritage> {
     });
   }
 
-  List<bool> userStatus = [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false
-  ];
+  List<bool> userStatus = [false, false, false, false, false, false, false, false, false, false, false, false, false, false];
 
   var tmpArray = [];
-  List<bool> userStatus1 = [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false
-  ];
+  List<bool> userStatus1 = [false, false, false, false, false, false, false, false, false, false, false, false, false, false];
 
   var tmpArray1 = [];
   bool _isLoading = false;
   final String title = 'Cultural and Heritage';
   TextEditingController poplarFestivalController = TextEditingController();
-  TextEditingController problemFacedFestivalController =
-  TextEditingController();
-  TextEditingController doesFestivalOccusionController =
-  TextEditingController();
+  TextEditingController problemFacedFestivalController = TextEditingController();
+  TextEditingController doesFestivalOccusionController = TextEditingController();
   TextEditingController anyFurtherSuggController = TextEditingController();
-  List q1checkBoxChoices = [
-    "Durga Puja",
-    "Holi",
-    "Eid",
-    "Rath Yaatra",
-    "Diwali",
-    "Muhaaram",
-    "If Other, Specify"
-  ];
-  List q1checkBoxChoicesValues = [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false
-  ];
+  List q1checkBoxChoices = ["Durga Puja", "Holi", "Eid", "Rath Yaatra", "Diwali", "Muhaaram", "If Other, Specify"];
+  List q1checkBoxChoicesValues = [false, false, false, false, false, false, false];
   List q2Choice = ["Yes", "No"];
   String q2V;
   List q3Choice = ["Within the state", "Outside the state"];
   String q3V;
-  List q4checkBoxChoices = [
-    "Traffic Issue",
-    "Over Crowded",
-    "Lots of Noise",
-    "Cleanliness",
-    "If other Specify"
-  ];
+  List q4checkBoxChoices = ["Traffic Issue", "Over Crowded", "Lots of Noise", "Cleanliness", "If other Specify"];
   List q4checkBoxChoicesValues = [
     false,
     false,
@@ -187,6 +137,7 @@ class _CulturalAndHeritageState extends State<CulturalAndHeritage> {
   String q5V;
   List q7Choice = ["Yes", "No"];
   String q7V;
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -196,267 +147,252 @@ class _CulturalAndHeritageState extends State<CulturalAndHeritage> {
           case ConnectionState.waiting:
             return Center(
                 child: CircularProgressIndicator(
-                  color: Colors.deepOrangeAccent,
-                  backgroundColor: Colors.blue,
-                  strokeWidth: 5.0,
-                ));
+              color: Colors.deepOrangeAccent,
+              backgroundColor: Colors.blue,
+              strokeWidth: 5.0,
+            ));
           default:
             if (snapshot.hasError)
               return Center(child: Text('Error: ${snapshot.error}'));
             else
               //resss = snapshot.data;
-            return Scaffold(
-              body: GestureDetector(
-                onTap: (){
-                  FocusScope.of(context).unfocus();
-                },
-                child: SingleChildScrollView(
-                  child: QuestionBody(
-                    questionBody: Column(
-                      children: [
-                        const PageTitleWidget(
-                          title: PageTitle.culturalAndHeritage,
-                        ),
-                        QuestionContainer(
-                            child: Column(
-                              children: [
-                                const QuestionName(
-                                    questionName:
-                                    CulturalAndHeriageQuestion.popularFestivalOccasion),
-                                for (var i = 0; i < q1checkBoxChoices.length; i++)
-                                  CheckboxListTile(
-                                      activeColor: Colors.deepOrange,
-                                      title: Text(
-                                        q1checkBoxChoices[i],
-                                        style: GoogleFonts.quicksand(
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                      value: q1checkBoxChoicesValues[i],
-                                      onChanged: (value) {
-                                        setState(() {
-                                          q1checkBoxChoicesValues[i] = value;
-                                        });
-                                        print(q1checkBoxChoices[i]);
-                                      }),
-                                (q1checkBoxChoicesValues[6] &&
-                                    q1checkBoxChoices.contains("If Other, Specify"))
-                                    ? TextFieldContainer(
-                                    controller: poplarFestivalController,
-                                    hint: "Enter Text")
-                                    : Container(),
-                              ],
-                            )),
-                        QuestionContainer(
-                            child: Column(
-                              children: [
-                                const QuestionName(
-                                    questionName:
-                                    CulturalAndHeriageQuestion.doesThisPlaceSignificant),
-                                for (var i = 0; i < q2Choice.length; i++)
-                                  RadioListTile(
-                                      tileColor: Colors.orangeAccent,
-                                      selectedTileColor: Colors.orangeAccent,
-                                      activeColor: Colors.deepOrange,
-                                      title: Text(
-                                        q2Choice[i].toString(),
-                                        style: GoogleFonts.quicksand(
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                      value: q2Choice[i].toString(),
-                                      groupValue: q2V,
-                                      onChanged: (val) {
-                                        setState(() {
-                                          q2V = val.toString();
-                                          print(q2V);
-                                        });
-                                      }),
-                              ],
-                            )),
-                        QuestionContainer(
-                            child: Column(
-                              children: [
-                                const QuestionName(
-                                    questionName: CulturalAndHeriageQuestion.visitersDuring),
-                                for (var i = 0; i < q3Choice.length; i++)
-                                  RadioListTile(
-                                      tileColor: Colors.orangeAccent,
-                                      selectedTileColor: Colors.orangeAccent,
-                                      activeColor: Colors.deepOrange,
-                                      title: Text(
-                                        q3Choice[i].toString(),
-                                        style: GoogleFonts.quicksand(
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                      value: q3Choice[i].toString(),
-                                      groupValue: q3V,
-                                      onChanged: (val) {
-                                        setState(() {
-                                          q3V = val.toString();
-                                          print(q3V);
-                                        });
-                                      }),
-                              ],
-                            )),
-                        QuestionContainer(
-                            child: Column(
-                              children: [
-                                const QuestionName(
-                                    questionName: CulturalAndHeriageQuestion.problemFaced),
-                                for (var i = 0; i < q4checkBoxChoices.length; i++)
-                                  CheckboxListTile(
-                                      activeColor: Colors.deepOrange,
-                                      title: Text(
-                                        q4checkBoxChoices[i],
-                                        style: GoogleFonts.quicksand(
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                      value: q4checkBoxChoicesValues[i],
-                                      onChanged: (value) {
-                                        setState(() {
-                                          q4checkBoxChoicesValues[i] = value;
-                                        });
-                                        print(q4checkBoxChoices[i]);
-                                      }),
-                                (q4checkBoxChoicesValues[4] &&
-                                    q4checkBoxChoices.contains("If other Specify"))
-                                    ? TextFieldContainer(
-                                  controller: problemFacedFestivalController,
-                                  hint: "Enter Text",
-                                )
-                                    : Container(),
-                              ],
-                            )),
-                        QuestionContainer(
-                            child: Column(
-                              children: [
-                                const QuestionName(
-                                    questionName:
-                                    CulturalAndHeriageQuestion.doesFestiveOccasion),
-                                for (var i = 0; i < q5Choice.length; i++)
-                                  RadioListTile(
-                                      tileColor: Colors.orangeAccent,
-                                      selectedTileColor: Colors.orangeAccent,
-                                      activeColor: Colors.deepOrange,
-                                      title: Text(
-                                        q5Choice[i].toString(),
-                                        style: GoogleFonts.quicksand(
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                      value: q5Choice[i].toString(),
-                                      groupValue: q5V,
-                                      onChanged: (val) {
-                                        setState(() {
-                                          q5V = val.toString();
-                                          print(q5V);
-                                        });
-                                      }),
-                              ],
-                            )),
-                        if (q5V == "Yes")
+              return Scaffold(
+                body: GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                  },
+                  child: SingleChildScrollView(
+                    child: QuestionBody(
+                      questionBody: Column(
+                        children: [
+                          const PageTitleWidget(
+                            title: PageTitle.culturalAndHeritage,
+                          ),
                           QuestionContainer(
                               child: Column(
-                                children: [
-                                  const QuestionName(
-                                      questionName: CulturalAndHeriageQuestion.ifYesSpecify),
-                                  TextFieldContainer(
-                                    controller: doesFestivalOccusionController,
-                                    hint: "Enter Text",
-                                  )
-                                ],
-                              )),
-                        QuestionContainer(
-                            child: Column(
-                              children: [
-                                const QuestionName(
-                                    questionName: CulturalAndHeriageQuestion.doTouristsVisit),
-                                for (var i = 0; i < q7Choice.length; i++)
-                                  RadioListTile(
-                                      tileColor: Colors.orangeAccent,
-                                      selectedTileColor: Colors.orangeAccent,
-                                      activeColor: Colors.deepOrange,
-                                      title: Text(
-                                        q7Choice[i].toString(),
-                                        style: GoogleFonts.quicksand(
-                                          fontSize: 18,
-                                        ),
+                            children: [
+                              const QuestionName(questionName: CulturalAndHeriageQuestion.popularFestivalOccasion),
+                              for (var i = 0; i < q1checkBoxChoices.length; i++)
+                                CheckboxListTile(
+                                    activeColor: Colors.deepOrange,
+                                    title: Text(
+                                      q1checkBoxChoices[i],
+                                      style: GoogleFonts.quicksand(
+                                        fontSize: 18,
                                       ),
-                                      value: q7Choice[i].toString(),
-                                      groupValue: q7V,
-                                      onChanged: (val) {
-                                        setState(() {
-                                          q7V = val.toString();
-                                          print(q7V);
-                                        });
-                                      }),
-                              ],
-                            )),
-                        QuestionContainer(
-                            child: Column(
+                                    ),
+                                    value: q1checkBoxChoicesValues[i],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        q1checkBoxChoicesValues[i] = value;
+                                      });
+                                      print(q1checkBoxChoices[i]);
+                                    }),
+                              (q1checkBoxChoicesValues[6] && q1checkBoxChoices.contains("If Other, Specify"))
+                                  ? TextFieldContainer(controller: poplarFestivalController, hint: "Enter Text")
+                                  : Container(),
+                            ],
+                          )),
+                          QuestionContainer(
+                              child: Column(
+                            children: [
+                              const QuestionName(questionName: CulturalAndHeriageQuestion.doesThisPlaceSignificant),
+                              for (var i = 0; i < q2Choice.length; i++)
+                                RadioListTile(
+                                    tileColor: Colors.orangeAccent,
+                                    selectedTileColor: Colors.orangeAccent,
+                                    activeColor: Colors.deepOrange,
+                                    title: Text(
+                                      q2Choice[i].toString(),
+                                      style: GoogleFonts.quicksand(
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    value: q2Choice[i].toString(),
+                                    groupValue: q2V,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        q2V = val.toString();
+                                        print(q2V);
+                                      });
+                                    }),
+                            ],
+                          )),
+                          QuestionContainer(
+                              child: Column(
+                            children: [
+                              const QuestionName(questionName: CulturalAndHeriageQuestion.visitersDuring),
+                              for (var i = 0; i < q3Choice.length; i++)
+                                RadioListTile(
+                                    tileColor: Colors.orangeAccent,
+                                    selectedTileColor: Colors.orangeAccent,
+                                    activeColor: Colors.deepOrange,
+                                    title: Text(
+                                      q3Choice[i].toString(),
+                                      style: GoogleFonts.quicksand(
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    value: q3Choice[i].toString(),
+                                    groupValue: q3V,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        q3V = val.toString();
+                                        print(q3V);
+                                      });
+                                    }),
+                            ],
+                          )),
+                          QuestionContainer(
+                              child: Column(
+                            children: [
+                              const QuestionName(questionName: CulturalAndHeriageQuestion.problemFaced),
+                              for (var i = 0; i < q4checkBoxChoices.length; i++)
+                                CheckboxListTile(
+                                    activeColor: Colors.deepOrange,
+                                    title: Text(
+                                      q4checkBoxChoices[i],
+                                      style: GoogleFonts.quicksand(
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    value: q4checkBoxChoicesValues[i],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        q4checkBoxChoicesValues[i] = value;
+                                      });
+                                      print(q4checkBoxChoices[i]);
+                                    }),
+                              (q4checkBoxChoicesValues[4] && q4checkBoxChoices.contains("If other Specify"))
+                                  ? TextFieldContainer(
+                                      controller: problemFacedFestivalController,
+                                      hint: "Enter Text",
+                                    )
+                                  : Container(),
+                            ],
+                          )),
+                          QuestionContainer(
+                              child: Column(
+                            children: [
+                              const QuestionName(questionName: CulturalAndHeriageQuestion.doesFestiveOccasion),
+                              for (var i = 0; i < q5Choice.length; i++)
+                                RadioListTile(
+                                    tileColor: Colors.orangeAccent,
+                                    selectedTileColor: Colors.orangeAccent,
+                                    activeColor: Colors.deepOrange,
+                                    title: Text(
+                                      q5Choice[i].toString(),
+                                      style: GoogleFonts.quicksand(
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    value: q5Choice[i].toString(),
+                                    groupValue: q5V,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        q5V = val.toString();
+                                        print(q5V);
+                                      });
+                                    }),
+                            ],
+                          )),
+                          if (q5V == "Yes")
+                            QuestionContainer(
+                                child: Column(
                               children: [
-                                const QuestionName(
-                                    questionName:
-                                    CulturalAndHeriageQuestion.anyFurtherSuggestion),
+                                const QuestionName(questionName: CulturalAndHeriageQuestion.ifYesSpecify),
                                 TextFieldContainer(
-                                  controller: anyFurtherSuggController,
+                                  controller: doesFestivalOccusionController,
                                   hint: "Enter Text",
                                 )
                               ],
                             )),
-                        /*submit button*/
-                        ButtonSaveAndContinue(
-                          onPress: () async{
-                            Navigator.pushNamed(context, '/tourism_page');
-                            await postMethod();
-
-                          },
-                        ),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        /*Back button*/
-                        ButtonBack(onPress: () async{
-                         //
-                          SharedPreferences _pref = await SharedPreferences.getInstance();
-                          final String statusOf = _pref.getString('survey_status');
-                          if (statusOf == "pending_survey")
-                          {
-                            Navigator.pushNamed(context, '/environmentalRelated_page');
-                          }
-                          else
-                          {
-                            Navigator.pop(context);
-                          }
-                        }),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        /*Save And Exit button*/
-                        ButtonSaveAndExit(onPress: () {
-                          Navigator.pushNamed(context, '/landing_page');
-
-                        }),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                      ],
+                          QuestionContainer(
+                              child: Column(
+                            children: [
+                              const QuestionName(questionName: CulturalAndHeriageQuestion.doTouristsVisit),
+                              for (var i = 0; i < q7Choice.length; i++)
+                                RadioListTile(
+                                    tileColor: Colors.orangeAccent,
+                                    selectedTileColor: Colors.orangeAccent,
+                                    activeColor: Colors.deepOrange,
+                                    title: Text(
+                                      q7Choice[i].toString(),
+                                      style: GoogleFonts.quicksand(
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    value: q7Choice[i].toString(),
+                                    groupValue: q7V,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        q7V = val.toString();
+                                        print(q7V);
+                                      });
+                                    }),
+                            ],
+                          )),
+                          QuestionContainer(
+                              child: Column(
+                            children: [
+                              const QuestionName(questionName: CulturalAndHeriageQuestion.anyFurtherSuggestion),
+                              TextFieldContainer(
+                                controller: anyFurtherSuggController,
+                                hint: "Enter Text",
+                              )
+                            ],
+                          )),
+                          /*submit button*/
+                          ButtonSaveAndContinue(
+                            onPress: () async {
+                              // Navigator.pushNamed(context, '/tourism_page');
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => TourismPage(
+                                        surveyId: widget.surveyId,
+                                      )));
+                              await postMethod();
+                            },
+                          ),
+                          const SizedBox(
+                            height: 15,
+                          ),
+                          /*Back button*/
+                          ButtonBack(onPress: () async {
+                            //
+                            SharedPreferences _pref = await SharedPreferences.getInstance();
+                            final String statusOf = _pref.getString('survey_status');
+                            if (statusOf == "pending_survey") {
+                              // Navigator.pushNamed(context, '/environmentalRelated_page');
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => EnvironmentalRelatedPage(
+                                        surveyId: widget.surveyId,
+                                      )));
+                            } else {
+                              Navigator.pop(context);
+                            }
+                          }),
+                          const SizedBox(
+                            height: 15,
+                          ),
+                          /*Save And Exit button*/
+                          ButtonSaveAndExit(onPress: () {
+                            Navigator.pushNamed(context, '/landing_page');
+                          }),
+                          const SizedBox(
+                            height: 15,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
+              );
         }
       },
     );
-
-
   }
 
- /* void alertTextField() {
+  /* void alertTextField() {
     scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Text(
         'Please Fill textfield...!',
@@ -472,39 +408,78 @@ class _CulturalAndHeritageState extends State<CulturalAndHeritage> {
     ));
   }*/
 
+  void setData() {
+    if (widget.surveyId == null) {
+      return;
+    }
+    q1checkBoxChoicesValues = enableCheckBoxValue(surveyModel.popularFestivalOccasion, q1checkBoxChoices, q1checkBoxChoicesValues);
+    q2V = surveyModel.thisPlaceHaveAnySignificantHeritageSiteStructure;
+    q3V = surveyModel.visitorsDuringTheFestivalsOrOccasion;
+    q4checkBoxChoicesValues = enableCheckBoxValue(surveyModel.problemFacedDuringTheFestivalsAndOccasion, q4checkBoxChoices, q4checkBoxChoicesValues);
+    q5V = surveyModel.festiveOccasionPresenceHelpYouInTheEconomicGeneration;
+
+    doesFestivalOccusionController.text = surveyModel.ifYesSpecifyHowFestivalsHelps;
+    q7V = surveyModel.doTouristsVisitThisPlaceRegularlyOrDuringFestivals;
+
+    anyFurtherSuggController.text = surveyModel.anyFurtherSuggestionInCulturalHeritage;
+  }
+
+  enableCheckBoxValue(
+    String value,
+    List qtnchoices,
+    List qtnChoicesValue,
+  ) {
+    final lst = value.split(',');
+    final a = List.generate(qtnchoices.length, (index) => false);
+    for (int i = 0; i < qtnchoices.length; i++) {
+      if (lst.contains(qtnchoices[i])) {
+        a[i] = true;
+      }
+    }
+    return a;
+  }
+
+  getCheckBoxValues(List qtnchoices, List qtnChoicesValue) {
+    String cbVal = "";
+    for (int i = 0; i < qtnchoices.length; i++) {
+      if (qtnChoicesValue[i]) {
+        cbVal = cbVal + qtnchoices[i] + ",";
+      }
+    }
+    if (cbVal.endsWith(",")) {
+      cbVal = cbVal.substring(0, cbVal.length - 1);
+    }
+    return cbVal;
+  }
+
   Future postMethod() async {
     SharedPreferences _preferences = await SharedPreferences.getInstance();
     final deviceId = _preferences.getString('D_id');
-    final surveyId =
-        _preferences.getString('survey_id') ?? '${deviceId.toString()}' + 'S1';
+    final surveyId = _preferences.getString('survey_id') ?? '${deviceId.toString()}' + 'S1';
     try {
       var data = {
         "survey_id": surveyId,
-        "popular_festival_occasion": "ChecKBox",
+        "popular_festival_occasion": getCheckBoxValues(q1checkBoxChoices, q1checkBoxChoicesValues),
         "this_place_have_any_significant_heritage_site_structure": q2V,
         "visitors_during_the_festivals_or_occasion": q3V,
-        "problem_faced_during_the_festivals_and_occasion": "CheckBox",
+        "problem_faced_during_the_festivals_and_occasion": getCheckBoxValues(q4checkBoxChoices, q4checkBoxChoicesValues),
         "festive_occasion_presence_help_you_in_the_economic_generation": q5V,
-        "if_yes_specify_how_festivals_helps":
-        doesFestivalOccusionController.text,
+        "if_yes_specify_how_festivals_helps": doesFestivalOccusionController.text,
         "do_tourists_visit_this_place_regularly_or_during_festivals": q7V,
-        "any_further_suggestion_in_cultural_heritage":
-        anyFurtherSuggController.text,
-        "cultural_heritage_status":"1"
+        "any_further_suggestion_in_cultural_heritage": anyFurtherSuggController.text,
+        "cultural_heritage_status": "1"
       };
       var dataUpdate = {
         //"survey_id": surveyId,
         "popular_festival_occasion": "ChecKBox",
         "this_place_have_any_significant_heritage_site_structure": q2V,
         "visitors_during_the_festivals_or_occasion": q3V,
-        "problem_faced_during_the_festivals_and_occasion": "CheckBox",
+        "problem_faced_during_the_festivals_and_occasion": getCheckBoxValues(q4checkBoxChoices, q4checkBoxChoicesValues),
         "festive_occasion_presence_help_you_in_the_economic_generation": q5V,
-        "if_yes_specify_how_festivals_helps":
-        doesFestivalOccusionController.text,
+        "if_yes_specify_how_festivals_helps": doesFestivalOccusionController.text,
         "do_tourists_visit_this_place_regularly_or_during_festivals": q7V,
-        "any_further_suggestion_in_cultural_heritage":
-        anyFurtherSuggController.text,
-        "cultural_heritage_status":"1"
+        "any_further_suggestion_in_cultural_heritage": anyFurtherSuggController.text,
+        "cultural_heritage_status": "1"
       };
       // var response = await http.post(
       //     Uri.parse(
@@ -518,22 +493,17 @@ class _CulturalAndHeritageState extends State<CulturalAndHeritage> {
       if (deviceResponseCultural.data[0].cultural_heritage_status == "1" || deviceResponseCultural.data[0].cultural_heritage_status != null) {
         print("in if");
         print(dataUpdate);
-        response = await http.put(
-            Uri.parse(
-                'http://13.232.140.106:5000/rsi-field-force-api/cultural-heritage?survey_id=$surveyId'),
+        response = await http.put(Uri.parse('http://13.232.140.106:5000/rsi-field-force-api/cultural-heritage?survey_id=$surveyId'),
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
             },
             body: json.encode(dataUpdate));
         print(response.body);
-
       } else {
         print("in else");
         print(data);
         deviceResponseCultural.data[0].cultural_heritage_status = "1";
-        response = await http.post(
-            Uri.parse(
-                'http://13.232.140.106:5000/rsi-field-force-api/cultural-heritage'),
+        response = await http.post(Uri.parse('http://13.232.140.106:5000/rsi-field-force-api/cultural-heritage'),
             headers: <String, String>{
               'Content-Type': 'application/json; charset=UTF-8',
             },
@@ -565,9 +535,9 @@ class _CulturalAndHeritageState extends State<CulturalAndHeritage> {
     ));
   }
 
-  // Widget culturalHeritageWidget() {
-  //   return
-  // }
+// Widget culturalHeritageWidget() {
+//   return
+// }
 
 // sendCulturalData() async {
 //   try {

@@ -16,6 +16,7 @@ import 'package:socio_survey/dbHelper/dbHelper.dart';
 import 'package:socio_survey/components/no_internet.dart';
 import 'package:socio_survey/components/textfield_container.dart';
 import 'package:socio_survey/components/userFields.dart';
+import 'package:socio_survey/main.dart';
 import 'package:socio_survey/pages/householdprofilepage/household_profile_page.dart';
 import 'package:socio_survey/pages/housing%20page/housing_page.dart';
 import 'package:http/http.dart' as http;
@@ -26,9 +27,10 @@ import 'package:socio_survey/service%20model/user_details_model_api.dart';
 
 const String route = "/user_details";
 
-
 class UserDetailsBuilder extends StatefulWidget {
-  UserDetailsBuilder({Key key}) : super(key: key);
+  final surveyId;
+
+  UserDetailsBuilder({Key key, this.surveyId}) : super(key: key);
 
   @override
   _UserDetailsBuilderState createState() => _UserDetailsBuilderState();
@@ -40,18 +42,14 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
   TextEditingController _localityController = TextEditingController();
   TextEditingController _wardController = TextEditingController();
   TextEditingController _totalMemberController = TextEditingController();
-  TextEditingController _familyHeadNameController =
-  TextEditingController();
+  TextEditingController _familyHeadNameController = TextEditingController();
   TextEditingController _maleController = TextEditingController();
   TextEditingController _femaleController = TextEditingController();
-  TextEditingController _illiterateMemberController =
-  TextEditingController();
+  TextEditingController _illiterateMemberController = TextEditingController();
   TextEditingController _casteController = TextEditingController();
   TextEditingController _religionController = TextEditingController();
-  TextEditingController _minorityStatusController =
-  TextEditingController();
-  TextEditingController _mobileNumberController =
-  TextEditingController();
+  TextEditingController _minorityStatusController = TextEditingController();
+  TextEditingController _mobileNumberController = TextEditingController();
 
   bool _isLoading = false;
   Connectivity _connectivity = new Connectivity();
@@ -62,8 +60,27 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
 
   @override
   void initState() {
-    //setvalues();
+    setvalues();
+    setData();
     super.initState();
+  }
+
+  setData() {
+    if (widget.surveyId == null) {
+      return;
+    }
+
+    _mobileNumberController.text = surveyModel.phoneNo;
+    _localityController.text = surveyModel.nameOfLocality;
+    _wardController.text = surveyModel.ward;
+    _totalMemberController.text = surveyModel.totalNoOfMembers;
+    _familyHeadNameController.text = surveyModel.fullNameOfFamilyHead;
+    _maleController.text = surveyModel.totalNoOfMales;
+    _femaleController.text = surveyModel.totalNoOfFemales;
+    _illiterateMemberController.text = surveyModel.totalNoOfIlliterateMembers;
+    _casteController.text = surveyModel.caste;
+    _religionController.text = surveyModel.religion;
+    _minorityStatusController.text = surveyModel.minorityStatus;
   }
 
   getPendingSyrvey() async {
@@ -82,24 +99,23 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
           case ConnectionState.waiting:
             return Center(
                 child: CircularProgressIndicator(
-                  color: Colors.deepOrangeAccent,
-                  backgroundColor: Colors.blue,
-                  strokeWidth: 5.0,
-                ));
+              color: Colors.deepOrangeAccent,
+              backgroundColor: Colors.blue,
+              strokeWidth: 5.0,
+            ));
           default:
             if (snapshot.hasError)
               return Center(child: Text('Error: ${snapshot.error}'));
             else
               //resss = snapshot.data;
-            return UserDetailsWidget();
+              return UserDetailsWidget();
         }
       },
     );
   }
 
   Future getDataById(id) async {
-    final response = await http.get(Uri.parse(
-        "http://13.232.140.106:5000/rsi-field-force-api/survey/get-individual-survey-details?survey_id=$id"));
+    final response = await http.get(Uri.parse("http://13.232.140.106:5000/rsi-field-force-api/survey/get-individual-survey-details?survey_id=$id"));
     if (response.statusCode == 200) {
       print("Response===${response.body}");
       return DeviceId.fromJson(jsonDecode(response.body));
@@ -107,8 +123,6 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
       throw Exception('Failed to load Data');
     }
   }
-
-
 
   Widget UserDetailsWidget() {
     return Scaffold(
@@ -120,10 +134,7 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
                   maxWidth: MediaQuery.of(context).size.width,
                 ),
                 decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        colors: [Color(0xfff6e45e1), Color(0xfff89d4cf)],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight)),
+                    gradient: LinearGradient(colors: [Color(0xfff6e45e1), Color(0xfff89d4cf)], begin: Alignment.centerLeft, end: Alignment.centerRight)),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,18 +142,14 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
                     Expanded(
                         flex: 3,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 36, horizontal: 24.0),
+                          padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.end,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 "RSI FieldForce",
-                                style: GoogleFonts.quicksand(
-                                    fontSize: 55.0,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w800),
+                                style: GoogleFonts.quicksand(fontSize: 55.0, color: Colors.white, fontWeight: FontWeight.w800),
                               ),
                               SizedBox(
                                 height: 10,
@@ -161,11 +168,8 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
                       flex: 5,
                       child: Container(
                         width: double.infinity,
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(40),
-                                topRight: Radius.circular(40))),
+                        decoration:
+                            BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40))),
                         child: SingleChildScrollView(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -235,10 +239,8 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
                                       height: 15,
                                     ),
                                     NumberTextFieldContainer(
-                                      labelText:
-                                      'Total No of Illiterate Members',
-                                      textController:
-                                      _illiterateMemberController,
+                                      labelText: 'Total No of Illiterate Members',
+                                      textController: _illiterateMemberController,
                                       onChange: (value) {},
                                     ),
                                     SizedBox(
@@ -275,50 +277,28 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
                                       ),
                                       child: FlatButton(
                                         onPressed: () async {
-                                          if (_formKey.currentState
-                                              .validate()) {
+                                          if (_formKey.currentState.validate()) {
                                             setState(() {
                                               _isLoading = true;
                                             });
-                                            SharedPreferences preferences =
-                                            await SharedPreferences
-                                                .getInstance();
+                                            SharedPreferences preferences = await SharedPreferences.getInstance();
 
-                                            Map<String, String> userData =
-                                            Map();
+                                            Map<String, String> userData = Map();
                                             userData['USER DETAILS'] = '';
-                                            userData['Name of Locality'] =
-                                                _localityController.text;
-                                            userData['Ward'] =
-                                                _wardController.text;
-                                            userData['Total No of Member'] =
-                                                _totalMemberController.text;
-                                            userData[
-                                            'Full Name of family head'] =
-                                                _familyHeadNameController.text;
-                                            userData['Male'] =
-                                                _maleController.text;
-                                            userData['Female'] =
-                                                _femaleController.text;
-                                            userData['Illiterate Member'] =
-                                                _illiterateMemberController
-                                                    .text;
-                                            userData['Caste'] =
-                                                _casteController.text;
-                                            userData['Religion'] =
-                                                _religionController.text;
-                                            userData['Minority Status'] =
-                                                _minorityStatusController.text;
-
+                                            userData['Name of Locality'] = _localityController.text;
+                                            userData['Ward'] = _wardController.text;
+                                            userData['Total No of Member'] = _totalMemberController.text;
+                                            userData['Full Name of family head'] = _familyHeadNameController.text;
+                                            userData['Male'] = _maleController.text;
+                                            userData['Female'] = _femaleController.text;
+                                            userData['Illiterate Member'] = _illiterateMemberController.text;
+                                            userData['Caste'] = _casteController.text;
+                                            userData['Religion'] = _religionController.text;
+                                            userData['Minority Status'] = _minorityStatusController.text;
 
                                             await postMethod();
 
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        HouseHoldPofilePage()));
-
+                                            Navigator.push(context, MaterialPageRoute(builder: (context) => HouseHoldPofilePage(surveyId: widget.surveyId,)));
 
                                             // final sId = preferences
                                             //     .getString("survey_id");
@@ -334,7 +314,6 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
                                             //           question: key);
                                             //     });
 
-
                                           } else {
                                             showSnackBar();
                                           }
@@ -344,26 +323,21 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
                                         textColor: Colors.white,
                                         child: _isLoading
                                             ? Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              "Loading..",
-                                              style:
-                                              GoogleFonts.quicksand(
-                                                  fontSize: 18.0),
-                                            ),
-                                            SizedBox(
-                                              width: 5,
-                                            ),
-                                            CircularProgressIndicator(
-                                              color: Colors.white,
-                                            )
-                                          ],
-                                        )
-                                            : Text("Take Survey",
-                                            style: GoogleFonts.quicksand(
-                                                fontSize: 22.0)),
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    "Loading..",
+                                                    style: GoogleFonts.quicksand(fontSize: 18.0),
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  CircularProgressIndicator(
+                                                    color: Colors.white,
+                                                  )
+                                                ],
+                                              )
+                                            : Text("Take Survey", style: GoogleFonts.quicksand(fontSize: 22.0)),
                                       ),
                                     ),
                                     SizedBox(
@@ -386,8 +360,7 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
       SharedPreferences _preferences = await SharedPreferences.getInstance();
       final deviceId = _preferences.getString('D_id');
       final surveyId = _preferences.getString("survey_id");
-      print(
-          "Printing New Survey Id ======>${_preferences.getString("survey_id")}");
+      print("Printing New Survey Id ======>${_preferences.getString("survey_id")}");
       final cityPref = _preferences.getString('city');
 
       var data = {
@@ -407,9 +380,7 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
         "minority_status": _minorityStatusController.text,
         "user_family_status": "1"
       };
-      var response = await http.post(
-          Uri.parse(
-              'http://13.232.140.106:5000/rsi-field-force-api/user-family'),
+      var response = await http.post(Uri.parse('http://13.232.140.106:5000/rsi-field-force-api/user-family'),
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
@@ -420,7 +391,6 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
 
       var res = jsonDecode(response.body);
       print(res["status"]);
-
 
       //Success function
       // if(res["status"]){
@@ -433,19 +403,23 @@ class _UserDetailsBuilderState extends State<UserDetailsBuilder> {
       //
       // }
 
-
       print("Response====>$id");
     } catch (e) {
       print(e);
     }
   }
+
   void setvalues() {
+    if (widget.surveyId == null) {
+      return;
+    }
+    print("Here == ");
     _mobileNumberController.text = "9999999990";
     _localityController..text = "test_skein";
     _wardController..text = "9";
     _totalMemberController..text = "9";
     _familyHeadNameController..text = "9";
-    _maleController..text ="9";
+    _maleController..text = "9";
     _femaleController..text = "9";
     _illiterateMemberController..text = "9";
     _casteController..text = "xx";

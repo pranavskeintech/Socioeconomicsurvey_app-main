@@ -115,6 +115,7 @@ class _CitiesState extends State<Cities> {
               child: DropdownButton(
                   hint: Text("Select Cities"),
                   value: valueChoose,
+                  isExpanded: true,
                   onChanged: (value) {
                     setState(() {
                       valueChoose = value;

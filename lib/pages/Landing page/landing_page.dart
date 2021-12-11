@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:random_string/random_string.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:socio_survey/main.dart';
+import 'package:socio_survey/models/survey_model.dart';
 import 'package:socio_survey/pages/Landing%20page/completed_page.dart';
 import 'package:socio_survey/components/connectivity_check.dart';
 import 'package:socio_survey/components/connectivity_provider.dart';
@@ -101,6 +103,7 @@ class LandingPageState extends State<LandingPage> {
                       await SharedPreferences.getInstance();
                       _pref.setString(
                           'survey_status', "new_survey");
+                      surveyModel = SurveyModel();
                       Navigator.pushNamed(context, '/cities_page');
                     },
                     height: 50,
@@ -127,7 +130,6 @@ class LandingPageState extends State<LandingPage> {
                           await SharedPreferences.getInstance();
                       // final userPref = _pref.getString('userid');
                       final devicePref = _pref.getString('D_id');
-
                             _pref.setString(
                                 'survey_status', "pending_survey");
                       if (newUser == true) {
